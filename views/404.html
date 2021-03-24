@@ -1,0 +1,20 @@
+{{define "404"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	{{template "_header"}}
+	<title>Page Not Found</title>
+</head>
+<body>
+	<div class="row vh-100 w-100 justify-content-center align-items-center">
+		<div class="text-center">
+			<div class="error mx-auto" data-text="404">404</div>
+			<p class="lead text-gray-800 mb-5">Page Not Found</p>
+			<p class="text-gray-500 mb-0">The page you are looking for was not found</p>
+			<a class="mt-2" href="/">&larr; Back to Dashboard</a>
+		</div>
+	</div>
+	{{template "_footer"}}
+</body>
+</html>
+{{end}}
