@@ -2,7 +2,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    {{template "_header"}}
+    {{template "_meta"}}
 		<title>{{.Title}}</title>
   </head>
   <body>
@@ -10,7 +10,7 @@
     <div id="wrapper">
 
       <!-- Sidebar -->
-      {{template "_sidebar"}}
+      {{template "_sidebar" .}}
       <!-- End of Sidebar -->
 
       <!-- Content Wrapper -->
@@ -227,7 +227,7 @@
 
     <!-- Logout Modal-->
 
-    {{template "_footer"}}
+    {{template "_script"}}
 	</body>
 </html>
 {{end}}

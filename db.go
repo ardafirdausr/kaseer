@@ -16,5 +16,6 @@ func ConnectToDB(host string, port string, username string, password string, DBN
 		return nil, err
 	}
 
+	DB = connection
 	return connection, nil
 }

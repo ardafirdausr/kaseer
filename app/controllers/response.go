@@ -8,8 +8,8 @@ import (
 
 func renderView(w http.ResponseWriter, filename string, data map[string]interface{}) {
 	t := template.Must(template.ParseFiles(
-		path.Join("views", "_header.html"),
-		path.Join("views", "_footer.html"),
+		path.Join("views", "_meta.html"),
+		path.Join("views", "_script.html"),
 		path.Join("views", filename+".html"),
 	))
 

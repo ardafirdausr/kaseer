@@ -13,7 +13,12 @@
 	<hr class="sidebar-divider my-0">
 
 	<!-- Nav Item - Dashboard -->
-	<li class="nav-item active">
+	<li
+	{{ if eq .ActiveMenu "dashboard" }}
+		class="nav-item active"
+	{{ else }}
+		class="nav-item"
+	{{end}}>
 			<a class="nav-link" href="/">
 				<i class="fas fa-fw fa-tachometer-alt mr-2"></i><span>Dashboard</span>
 			</a>
@@ -26,10 +31,16 @@
 	<div class="sidebar-heading">Data</div>
 
 	<!-- Nav Item - Products -->
-	<li class="nav-item">
+	<li
+	{{ if eq .ActiveMenu "products" }}
+		class="nav-item active"
+	{{ else }}
+		class="nav-item"
+	{{end}}>
+	<!-- <li class="nav-item"> -->
 			<a class="nav-link" href="/products">
 					<i class="fas fa-shopping-bag mr-2"></i>
-					<span>Product</span></a>
+					<span>Products</span></a>
 	</li>
 
 	<!-- Nav Item - Order -->

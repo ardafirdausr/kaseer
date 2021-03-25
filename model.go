@@ -10,7 +10,7 @@ type Product struct {
 	Code      string    `db:"code"`
 	Name      string    `db:"name"`
 	Price     int       `db:"price"`
-	Quantity  int       `db:"quantity"`
+	Stock     int       `db:"stock"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -31,7 +31,7 @@ func (p *Product) GetAllProducts() ([]Product, error) {
 			&product.Code,
 			&product.Name,
 			&product.Price,
-			&product.Quantity,
+			&product.Stock,
 			&product.CreatedAt,
 			&product.UpdatedAt,
 		)

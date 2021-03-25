@@ -29,9 +29,8 @@ func main() {
 	fs := http.FileServer(http.Dir("assets"))
 
 	mux := http.NewServeMux()
-
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-
+	mux.HandleFunc("/products", ProductsHandler)
 	mux.HandleFunc("/", IndexHandler)
 
 	port := os.Getenv("APP_PORT")
