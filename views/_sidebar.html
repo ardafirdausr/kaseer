@@ -30,6 +30,18 @@
 	<!-- Heading -->
 	<div class="sidebar-heading">Data</div>
 
+	<!-- Nav Item - Order -->
+	<li
+	{{ if eq .ActiveMenu "orders" }}
+		class="nav-item active"
+	{{ else }}
+		class="nav-item"
+	{{end}}>
+		<a class="nav-link" href="/orders">
+				<i class="fas fa-shopping-cart mr-2"></i>
+				<span>Order</span></a>
+	</li>
+
 	<!-- Nav Item - Products -->
 	<li
 	{{ if eq .ActiveMenu "products" }}
@@ -43,19 +55,15 @@
 					<span>Products</span></a>
 	</li>
 
-	<!-- Nav Item - Order -->
-	<li class="nav-item">
-			<a class="nav-link" href="/orders">
-					<i class="fas fa-cart-plus mr-2"></i>
-					<span>Order</span></a>
-	</li>
-
 	<!-- Divider -->
 	<hr class="sidebar-divider d-none d-md-block">
 
-	<!-- Sidebar Toggler (Sidebar) -->
-	<div class="text-center d-none d-md-inline">
-			<button class="rounded-circle border-0" id="sidebarToggle"></button>
+	<!-- Sidebar Message -->
+	<div class="sidebar-card">
+		<div class="text-center">
+			<i class="fas fa-cart-plus mb-3" style="font-size: 300%;"></i>
+		</div>
+		<a type="button" class="d-block btn btn-success btn-sm" href="/orders/create">Add Transaction</a>
 	</div>
 
 </ul>

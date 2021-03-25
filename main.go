@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
 
@@ -26,17 +27,39 @@ func main() {
 	}
 	defer DB.Close()
 
-	fs := http.FileServer(http.Dir("assets"))
+	router := mux.NewRouter()
 
-	mux := http.NewServeMux()
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-	mux.HandleFunc("/products", ProductsHandler)
-	mux.HandleFunc("/", IndexHandler)
+	router.Use(loggingMiddleware)
+	// router.Use(mux.CORSMethodMiddleware(router))
+
+	// router.StrictSlash(true)
+	// router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	// 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	// 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Request-Headers, Access-Control-Request-Method, Connection, Host, Origin, User-Agent, Referer, Cache-Control, X-header")
+	// 	w.WriteHeader(http.StatusNoContent)
+	// 	return
+	// })
+
+	fs := http.FileServer(http.Dir("assets"))
+	router.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	productRouter := router.PathPrefix("/products").Subrouter()
+	productRouter.HandleFunc("/create", ShowCreateProductForm).Methods("GET")
+	productRouter.HandleFunc("/{productId:[0-9]+}/edit", ShowEditProductForm).Methods("GET")
+	productRouter.HandleFunc("/{productId:[0-9]+}/update", UpdateProduct).Methods("POST")
+	productRouter.HandleFunc("/{productId:[0-9]+}/delete", DeleteProduct).Methods("POST")
+	productRouter.HandleFunc("", ShowAllProducts).Methods("GET")
+	productRouter.HandleFunc("", CreateProduct).Methods("POST")
+
+	router.HandleFunc("/", ShowDashboard).Methods("GET")
+
+	router.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "80"
 	}
 	fmt.Println("Running app on port " + port)
-	http.ListenAndServe(":"+port, mux)
+	http.ListenAndServe(":"+port, router)
 }
