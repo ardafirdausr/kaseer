@@ -1,0 +1,152 @@
+{{define "orders"}}
+<!doctype html>
+<html lang="en">
+
+<head>
+    {{template "_meta"}}
+    <title>{{.Title}}</title>
+</head>
+
+<body>
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {{template "_sidebar" .}}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {{template "_navbar"}}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Orders</h1>
+                        <a href="/orders/create" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                                class="fas fa-plus mr-2"></i> Add Orders</a>
+                    </div>
+
+                    <!-- Content Row -->
+
+                    <div class="row">
+
+                        <!-- Area Chart -->
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <!-- Card Header - Dropdown -->
+                                <div
+                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">All Orders</h6>
+                                </div>
+                                <!-- Card Body -->
+                                <div class="card-body">
+                                    <table class="table table-stripped" id="order-table">
+                                        <thead>
+                                            <th>Code</th>
+                                            <th>Tanggal</th>
+                                            <th>Total</th>
+                                            <th>Action</th>
+                                        </thead>
+                                        <tbody>
+                                            {{range .Orders}}
+                                                <tr>
+                                                    <td class="font-weight-bold">{{.Code}}</td>
+                                                    <td class="font-weight-bold">{{.CreatedAt}}</td>
+                                                    <td>Rp. {{.Total}}</td>
+                                                    <td>
+                                                        <a type="button" href="/orders/{{.ID}}/edit" class="btn btn-icon btn-sm btn-success">
+                                                            <i class="fas fa-edit mr-1"></i> Edit
+                                                        </a>
+                                                        <button class="btn btn-icon btn-sm btn-danger"
+                                                            onclick='changeDeleteOrderUrl("{{.ID}}", "{{.Name}}")'
+                                                            data-toggle="modal"
+                                                            data-target="#delete-order-modal">
+                                                            <i class="fas fa-trash mr-1"></i> Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            {{end}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <div class="modal fade" tabindex="-1" role="dialog" id="delete-order-modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Order</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="" method="POST" id="delete-order-form">
+                            <input type="hidden" value="/orders/:orderId/delete" id="delete-order-url">
+                        </form>
+                        Are you sure to delete this order?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteOrder()">Delete</button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            {{template "_footer"}}
+            <!-- End of Footer -->
+
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Logout Modal-->
+
+    {{template "_script"}}
+    <script>
+        function changeDeleteOrderUrl(orderId, orderName) {
+            var deletUrl = $('#delete-order-url').val().replace(':orderId', orderId);
+            $('#delete-order-form').attr('action', deletUrl)
+        }
+
+        function deleteOrder() {
+            $('#delete-order-modal').modal('hide');
+            $('#delete-order-form').submit();
+    }
+        function dissmissDeleteOrderModal() {
+            $('#delete-order-modal').modal('hide');
+        }
+
+        $(document).ready( function () {
+            $('#order-table').DataTable({
+                order: [[0, 'asc']]
+            })
+        });
+    </script>
+</body>
+
+</html>
+{{end}}

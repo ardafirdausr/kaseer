@@ -8,6 +8,7 @@ import (
 	"path"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -79,13 +80,13 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	product.Stock, _ = strconv.Atoi(r.Form.Get("stock"))
 	product.Price, _ = strconv.Atoi(r.Form.Get("price"))
 
-	// validate := validator.New()
-	// err = validate.Struct(product)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	log.Println(err.Error())
-	// 	http.Redirect(w, r, "/products/create", http.StatusSeeOther)
-	// }
+	validate := validator.New()
+	err = validate.Struct(product)
+	if err != nil {
+		fmt.Println(err.Error())
+		log.Println(err.Error())
+		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
+	}
 
 	err = product.Save()
 	if err != nil {
@@ -141,6 +142,50 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/products", http.StatusSeeOther)
+}
+
+func ShowAllOrders(w http.ResponseWriter, r *http.Request) {
+	orders, err := GetAllOrders()
+	if err != nil {
+		log.Println(err.Error())
+		data := map[string]interface{}{
+			"Templates": []string{"_meta", "_script"},
+		}
+		renderView(w, "500", data)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Title":      "All Products",
+		"ActiveMenu": "orders",
+		"Products":   orders,
+	}
+	renderView(w, "orders", data)
+}
+
+func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
+	products, err := GetAllProducts()
+	if err != nil {
+		log.Println(err.Error())
+		data := map[string]interface{}{
+			"Templates": []string{"_meta", "_script"},
+		}
+		renderView(w, "500", data)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Title":      "Create Order",
+		"ActiveMenu": "orderss",
+		"Products":   products,
+	}
+	renderView(w, "order_create", data)
+}
+
+func CreateOrder(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/orders/create", http.StatusSeeOther)
 }
 
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {

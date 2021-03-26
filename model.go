@@ -167,3 +167,51 @@ func FindProductById(id int) (*Product, error) {
 
 	return &product, nil
 }
+
+type Order struct {
+	ID        int64  `db:"id"`
+	Code      string `db:"code" validate:"required"`
+	Total     string `db:"total" validate:"required"`
+	Items     []OrderItem
+	CreatedAt time.Time `db:"created_at"`
+}
+
+type OrderItem struct {
+	ID        int64     `db:"id"`
+	ProductId string    `db:"product_id" validate:"required"`
+	quantity  string    `db:"quantity" validate:"required"`
+	subtotal  int       `db:"subtotal" validate:"required"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
+func GetAllOrders() ([]Order, error) {
+	rows, err := DB.Query("SELECT * FROM orders")
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orders []Order
+	for rows.Next() {
+		var order = Order{}
+		var err = rows.Scan(
+			&order.ID,
+			&order.Code,
+			&order.Total,
+			&order.CreatedAt,
+		)
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+	if err = rows.Err(); err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	return orders, nil
+}
