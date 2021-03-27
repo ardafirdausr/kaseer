@@ -1,19 +1,66 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"path"
 	"strconv"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
+func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
+	data := M{
+		"Templates":    []string{"_meta", "_script"},
+		"Title":        "Login",
+		"ErrorMessage": GoPosSession.Flashes("error_message"),
+	}
+	renderView(w, "login", data)
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		renderErrorPage(w, http.StatusInternalServerError)
+		return
+	}
+
+	email := r.Form.Get("email")
+	user, err := findUserByEmail(email)
+	if err != nil || user == nil {
+		GoPosSession.AddFlash("Invalid Email Or Password", "error_message")
+		GoPosSession.Save(r, w)
+		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+		return
+	}
+
+	password := r.Form.Get("password")
+	isEqual := user.CheckPassword(password)
+	if !isEqual {
+		GoPosSession.AddFlash("Invalid Email Or Password", "error_message")
+		GoPosSession.Save(r, w)
+		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+		return
+	}
+
+	GoPosSession.Values["user"] = user
+	GoPosSession.Save(r, w)
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	GoPosSession.Values["user"] = nil
+	GoPosSession.Save(r, w)
+	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+}
+
 func ShowDashboard(w http.ResponseWriter, r *http.Request) {
-	data := map[string]interface{}{
+	data := M{
 		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":      "Dashboard",
 		"ActiveMenu": "dashboard",
@@ -25,14 +72,14 @@ func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
 	products, err := GetAllProducts()
 	if err != nil {
 		log.Println(err.Error())
-		data := map[string]interface{}{
+		data := M{
 			"Templates": []string{"_meta", "_script"},
 		}
 		renderView(w, "500", data)
 		return
 	}
 
-	data := map[string]interface{}{
+	data := M{
 		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":      "All Products",
 		"ActiveMenu": "products",
@@ -42,10 +89,11 @@ func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowCreateProductForm(w http.ResponseWriter, r *http.Request) {
-	data := map[string]interface{}{
-		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
-		"Title":      "Create Product",
-		"ActiveMenu": "products",
+	data := M{
+		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Title":        "Create Product",
+		"ActiveMenu":   "products",
+		"ErrorMessage": GoPosSession.Flashes("error_message"),
 	}
 	renderView(w, "product_create", data)
 }
@@ -58,7 +106,7 @@ func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
 		renderErrorPage(w, http.StatusNotFound)
 	}
 
-	data := map[string]interface{}{
+	data := M{
 		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":      "Edit Product",
 		"ActiveMenu": "products",
@@ -83,9 +131,12 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
 	err = validate.Struct(product)
 	if err != nil {
-		fmt.Println(err.Error())
 		log.Println(err.Error())
+
+		GoPosSession.AddFlash("Invalid data", "error_message")
+
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
+		return
 	}
 
 	err = product.Save()
@@ -148,14 +199,14 @@ func ShowAllOrders(w http.ResponseWriter, r *http.Request) {
 	orders, err := GetAllOrders()
 	if err != nil {
 		log.Println(err.Error())
-		data := map[string]interface{}{
+		data := M{
 			"Templates": []string{"_meta", "_script"},
 		}
 		renderView(w, "500", data)
 		return
 	}
 
-	data := map[string]interface{}{
+	data := M{
 		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":      "All Products",
 		"ActiveMenu": "orders",
@@ -168,14 +219,14 @@ func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
 	products, err := GetAllProducts()
 	if err != nil {
 		log.Println(err.Error())
-		data := map[string]interface{}{
+		data := M{
 			"Templates": []string{"_meta", "_script"},
 		}
 		renderView(w, "500", data)
 		return
 	}
 
-	data := map[string]interface{}{
+	data := M{
 		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":      "Create Order",
 		"ActiveMenu": "orderss",
@@ -185,7 +236,46 @@ func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateOrder(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/orders/create", http.StatusSeeOther)
+	err := r.ParseForm()
+	if err != nil {
+		renderErrorPage(w, http.StatusInternalServerError)
+		return
+	}
+
+	now := time.Now()
+
+	payload := struct {
+		OrderItems []OrderItem `json:"order_items"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		renderErrorPage(w, http.StatusInternalServerError)
+		return
+	}
+
+	order := &Order{}
+	order.Code = fmt.Sprintf("%d%d%d", now.Year(), now.Month(), now.Day())
+
+	// order.Stock, _ = strconv.Atoi(r.Form.Get("stock"))
+	// order.Price, _ = strconv.Atoi(r.Form.Get("price"))
+
+	validate := validator.New()
+	err = validate.Struct(order)
+	if err != nil {
+		fmt.Println(err.Error())
+		log.Println(err.Error())
+		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
+	}
+
+	err = order.Save()
+	if err != nil {
+		fmt.Println(err.Error())
+		log.Println(err.Error())
+		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/order_create", http.StatusSeeOther)
 }
 
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
@@ -194,13 +284,13 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 func renderErrorPage(w http.ResponseWriter, errorCode int) {
 	templateName := strconv.Itoa(errorCode)
-	data := map[string]interface{}{
+	data := M{
 		"Templates": []string{"_meta", "_script"},
 	}
 	renderView(w, templateName, data)
 }
 
-func renderView(w http.ResponseWriter, templateName string, data map[string]interface{}) {
+func renderView(w http.ResponseWriter, templateName string, data M) {
 	var templatesPaths []string
 	if templates, isExist := data["Templates"]; isExist {
 		for _, template := range templates.([]string) {

@@ -1,11 +1,16 @@
 package main
 
 import (
+	"context"
+	"crypto/sha1"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 )
+
+type M map[string]interface{}
 
 type Product struct {
 	ID        int64     `db:"id" validate:"omitempty,required,numeric"`
@@ -169,19 +174,69 @@ func FindProductById(id int) (*Product, error) {
 }
 
 type Order struct {
-	ID        int64  `db:"id"`
-	Code      string `db:"code" validate:"required"`
-	Total     string `db:"total" validate:"required"`
-	Items     []OrderItem
+	ID        int64     `db:"id"`
+	Code      string    `db:"code"`
+	Total     string    `db:"total"`
 	CreatedAt time.Time `db:"created_at"`
+	Items     []OrderItem
 }
 
 type OrderItem struct {
 	ID        int64     `db:"id"`
-	ProductId string    `db:"product_id" validate:"required"`
-	quantity  string    `db:"quantity" validate:"required"`
-	subtotal  int       `db:"subtotal" validate:"required"`
+	OrderId   int64     `db:"order_id" validate:"required" `
+	ProductId int64     `db:"product_id" validate:"required"`
+	Quantity  string    `db:"quantity" validate:"required"`
+	Subtotal  int       `db:"subtotal" validate:"required"`
 	CreatedAt time.Time `db:"created_at"`
+}
+
+func (o *Order) Save() error {
+	// Create a new context, and begin a transaction
+	ctx := context.Background()
+	tx, err := DB.BeginTx(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ors, err := tx.ExecContext(ctx, "INSERT INTO orders(code, total) VALUES(?, ?)", o.Code, o.Total)
+	if err != nil {
+		tx.Rollback()
+		log.Fatal(err)
+		return err
+	}
+
+	orderId, err := ors.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		log.Fatal(err)
+		return err
+	}
+
+	sqlStr := "INSERT INTO order_items(order_id, product_id, quantity, subtotal) VALUES "
+	vals := []interface{}{}
+
+	for _, item := range o.Items {
+		sqlStr += "(?, ?, ?, ?),"
+		vals = append(vals, orderId, item.ProductId, item.Quantity, item.Subtotal)
+		item.OrderId = orderId
+	}
+
+	sqlStr = sqlStr[0 : len(sqlStr)-1]
+	stmt, err := DB.PrepareContext(ctx, sqlStr)
+	_, err = stmt.Exec(vals...)
+	if err != nil {
+		tx.Rollback()
+		log.Fatal(err)
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		log.Fatal(err)
+	}
+
+	return nil
 }
 
 func GetAllOrders() ([]Order, error) {
@@ -214,4 +269,61 @@ func GetAllOrders() ([]Order, error) {
 	}
 
 	return orders, nil
+}
+
+type User struct {
+	ID        int64
+	Email     string
+	Name      string
+	Password  string
+	PhotoUrl  sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (u *User) CheckPassword(password string) bool {
+	hash := sha1.New()
+	hash.Write([]byte(password))
+	hashed := hash.Sum(nil)
+	return fmt.Sprintf("%x", hashed) == u.Password
+}
+
+func findUserById(userId int64) (*User, error) {
+	row := DB.QueryRow("SELECT * FROM users WHERE id = ?", userId)
+
+	var user User
+	var err = row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.Name,
+		&user.PhotoUrl,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func findUserByEmail(email string) (*User, error) {
+	row := DB.QueryRow("SELECT * FROM users WHERE email = ?", email)
+
+	var user User
+	var err = row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.Name,
+		&user.PhotoUrl,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

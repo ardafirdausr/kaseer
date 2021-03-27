@@ -50,7 +50,11 @@
                                 </div>
                                 <!-- Card Body -->
                                 <div class="card-body">
-                                    <form action="/orders" method="POST">
+                                    <form
+                                        action="/orders"
+                                        method="POST"
+                                        id="create-order-form">
+                                        <input type="hidden" name="order_items" id="order-items">
                                         <div class="row">
                                             <div class="col-12 col-md-6">
                                                 <div class="form-group">
@@ -100,8 +104,6 @@
                                             <div class="col-12 col-md-6 mt-2 mt-md-0">
                                                 <button
                                                     type="submit"
-                                                    role="button"
-                                                    onclick="submit()"
                                                     class="btn btn-block btn-primary"
                                                     tabindex="4"
                                                     id="submit-button"
@@ -181,10 +183,6 @@
     <script>
         var detailOrderItems = [];
         var orderItems = [];
-
-        function submit() {
-
-        }
 
         function addProduct() {
             let selectedOption = $('#select-product').find(':selected');
@@ -273,6 +271,13 @@
                 $('#detail-order-item').append(temp.html())
             }
         }
+
+        $('#create-order-form').on('submit', function(e) {
+            e.preventDefault()
+            let orderItemsJson = JSON.stringify(orderItems);
+            $('#order-items').val(orderItemsJson)
+            $('#create-order-form').off().submit();
+        })
 
         $('#select-product').on('change', function() {
             $('#product-quantity').val(0)
