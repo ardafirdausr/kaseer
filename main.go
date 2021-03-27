@@ -15,7 +15,7 @@ var DB *sql.DB
 
 var SessionStore *sessions.CookieStore
 
-const SessionName = "go_pos_session"
+const SESSIONNAME = "go_pos_session"
 
 func main() {
 	err := godotenv.Load()

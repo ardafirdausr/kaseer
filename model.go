@@ -230,8 +230,7 @@ func (o *Order) Save() error {
 		return err
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		tx.Rollback()
 		log.Fatal(err)
 	}
@@ -281,11 +280,39 @@ type User struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+func (u *User) changePassword(password string) {
+	hash := sha1.New()
+	hash.Write([]byte(password))
+	hashed := hash.Sum(nil)
+	u.Password = fmt.Sprintf("%x", hashed)
+}
+
 func (u *User) CheckPassword(password string) bool {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 	hashed := hash.Sum(nil)
 	return fmt.Sprintf("%x", hashed) == u.Password
+}
+
+func (u *User) Update() error {
+	fmt.Println(u.Name, u.Email, u.PhotoUrl, u.ID)
+	res, err := DB.Exec(
+		"UPDATE users SET name = ?, email = ?, photo_url = ? WHERE id = ?",
+		u.Name, u.Email, u.PhotoUrl, u.ID)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	rowAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	} else if rowAffected < 1 {
+		return errors.New("Failed to update data")
+	}
+
+	return nil
 }
 
 func findUserById(userId int64) (*User, error) {

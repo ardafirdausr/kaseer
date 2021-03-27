@@ -14,7 +14,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := SessionStore.Get(r, SessionName)
+		session, _ := SessionStore.Get(r, SESSIONNAME)
 		if session.IsNew {
 			session.Save(r, w)
 			http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
@@ -34,8 +34,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		session.Values["user"] = user
-		err = session.Save(r, w)
-		if err != nil {
+		if err := session.Save(r, w); err != nil {
 			log.Println(err.Error())
 		}
 

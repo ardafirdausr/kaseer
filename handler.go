@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 )
 
 func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
-	session, _ := SessionStore.Get(r, SessionName)
+	session, _ := SessionStore.Get(r, SESSIONNAME)
 	data := M{
 		"Templates":    []string{"_meta", "_script"},
 		"Title":        "Login",
@@ -25,7 +26,7 @@ func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	session, _ := SessionStore.Get(r, SessionName)
+	session, _ := SessionStore.Get(r, SESSIONNAME)
 
 	err := r.ParseForm()
 	if err != nil {
@@ -52,16 +53,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["user_id"] = user.ID
-	err = session.Save(r, w)
-	if err != nil {
+	if err := session.Save(r, w); err != nil {
 		log.Println(err.Error())
 	}
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	session, _ := SessionStore.Get(r, SessionName)
-	session.Values["user"] = nil
+	session, _ := SessionStore.Get(r, SESSIONNAME)
+	session.Options.MaxAge = -1
 	session.Save(r, w)
 	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }
@@ -76,20 +76,83 @@ func ShowUserProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func showEditUserProfileForm(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SESSIONNAME)
 	data := M{
-		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
-		"Title":      "Edit Profile",
-		"ActiveMenu": "",
+		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Title":        "Edit Profile",
+		"ActiveMenu":   "",
+		"ErrorMessage": session.Flashes("error_message"),
 	}
 	renderView(w, r, "profile_edit", data)
 }
 
-func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseMultipartForm(4096); err != nil {
+func showEditUserPasswordForm(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SESSIONNAME)
+	data := M{
+		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Title":        "Edit Password",
+		"ActiveMenu":   "",
+		"ErrorMessage": session.Flashes("error_message"),
+	}
+	renderView(w, r, "profile_password", data)
+}
+
+func UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SESSIONNAME)
+	user := session.Values["user"].(*User)
+
+	if err := r.ParseForm(); err != nil {
 		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
+	password := r.Form.Get("password")
+	user.changePassword(password)
+	if err := user.Update(); err != nil {
+		session.AddFlash("Failed to update data", "error_message")
+		session.Save(r, w)
+		http.Redirect(w, r, "/profile/edit/password", http.StatusSeeOther)
+	}
+
+	http.Redirect(w, r, "/profile", http.StatusSeeOther)
+}
+
+func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SESSIONNAME)
+	user := session.Values["user"].(*User)
+
+	if err := r.ParseMultipartForm(1024 * 5); err != nil {
+		renderErrorPage(w, r, http.StatusInternalServerError)
+		return
+	}
+
+	photoDirectory := filepath.Join("assets", "storage", "image")
+	photoName := fmt.Sprintf("user-%d", user.ID)
+	filename, err := SaveUploadedFile(r, "photo", photoDirectory, photoName)
+	if err != nil {
+		fmt.Println(129)
+		fmt.Println(err.Error())
+		session.AddFlash(err.Error(), "error_message")
+		session.Save(r, w)
+		http.Redirect(w, r, "/profile/edit", http.StatusSeeOther)
+		return
+	}
+
+	photoUrl := fmt.Sprintf("/static/storage/image/%s", filename)
+
+	user.Name = r.Form.Get("name")
+	user.Email = r.Form.Get("email")
+	user.PhotoUrl = &photoUrl
+	if err := user.Update(); err != nil {
+		fmt.Println(143)
+		fmt.Println(err.Error())
+		session.AddFlash("Failed to update data", "error_message")
+		session.Save(r, w)
+		http.Redirect(w, r, "/profile/edit", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }
 
 func ShowDashboard(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +185,7 @@ func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowCreateProductForm(w http.ResponseWriter, r *http.Request) {
-	session, _ := SessionStore.Get(r, SessionName)
+	session, _ := SessionStore.Get(r, SESSIONNAME)
 	data := M{
 		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":        "Create Product",
@@ -150,7 +213,7 @@ func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
-	session, _ := SessionStore.Get(r, SessionName)
+	session, _ := SessionStore.Get(r, SESSIONNAME)
 
 	err := r.ParseForm()
 	if err != nil {
@@ -165,21 +228,18 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	product.Price, _ = strconv.Atoi(r.Form.Get("price"))
 
 	validate := validator.New()
-	err = validate.Struct(product)
-	if err != nil {
+	if err := validate.Struct(product); err != nil {
 		log.Println(err.Error())
-
 		session.AddFlash(err.Error(), "error_message")
-
+		session.Save(r, w)
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
 		return
 	}
 
-	err = product.Save()
-	if err != nil {
+	if err := product.Save(); err != nil {
 		log.Println(err.Error())
 		session.AddFlash(err.Error(), "error_message")
-
+		session.Save(r, w)
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
 		return
 	}
@@ -195,8 +255,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		renderErrorPage(w, r, http.StatusNotFound)
 	}
 
-	err = r.ParseForm()
-	if err != nil {
+	if err := r.ParseForm(); err != nil {
 		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
@@ -205,8 +264,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	product.Name = r.Form.Get("name")
 	product.Stock, _ = strconv.Atoi(r.Form.Get("stock"))
 	product.Price, _ = strconv.Atoi(r.Form.Get("price"))
-	err = product.Update()
-	if err != nil {
+	if err := product.Update(); err != nil {
 		editUrl := fmt.Sprintf("/products/%d/edit", productId)
 		http.Redirect(w, r, editUrl, http.StatusSeeOther)
 		return
@@ -223,8 +281,7 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		renderErrorPage(w, r, http.StatusNotFound)
 	}
 
-	err = product.Delete()
-	if err != nil {
+	if err := product.Delete(); err != nil {
 		http.Redirect(w, r, "/products", http.StatusSeeOther)
 		return
 	}
@@ -284,8 +341,7 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	payload := struct {
 		OrderItems []OrderItem `json:"order_items"`
 	}{}
-	err = json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
@@ -297,14 +353,12 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	// order.Price, _ = strconv.Atoi(r.Form.Get("price"))
 
 	validate := validator.New()
-	err = validate.Struct(order)
-	if err != nil {
+	if err := validate.Struct(order); err != nil {
 		log.Println(err.Error())
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
 	}
 
-	err = order.Save()
-	if err != nil {
+	if err := order.Save(); err != nil {
 		log.Println(err.Error())
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
 		return
@@ -326,7 +380,7 @@ func renderErrorPage(w http.ResponseWriter, r *http.Request, errorCode int) {
 }
 
 func renderView(w http.ResponseWriter, r *http.Request, templateName string, data M) {
-	session, _ := SessionStore.Get(r, SessionName)
+	session, _ := SessionStore.Get(r, SESSIONNAME)
 	data["User"] = session.Values["user"]
 
 	var templatesPaths []string
