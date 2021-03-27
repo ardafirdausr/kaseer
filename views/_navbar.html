@@ -15,13 +15,23 @@
 			<li class="nav-item dropdown no-arrow">
 					<a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
 							data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin</span>
-							<img class="img-profile rounded-circle" src="/static/image/avatar_placeholder.png">
+							<span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ .User.Name }}</span>
+							{{if .User.PhotoUrl }}
+									<img
+											src="{{.User.PhotoUrl}}"
+											alt="{{.User.Name}}"
+											class="img-profile rounded-circle">
+							{{else}}
+									<img
+											src="/static/image/avatar_placeholder.png"
+											alt="{{.User.Name}}"
+											class="img-profile rounded-circle">
+							{{end}}
 					</a>
 					<!-- Dropdown - User Information -->
 					<div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
 							aria-labelledby="userDropdown">
-							<a class="dropdown-item" href="#">
+							<a class="dropdown-item" href="/profile">
 									<i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
 									Profile
 							</a>
@@ -48,7 +58,7 @@
 							<div class="modal-footer">
 									<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
 									<form action="/auth/logout" method="POST">
-										<button type="submit" class="btn btn-primary">Logout</button>
+										<button type="submit" class="btn btn-danger">Logout</button>
 									</form>
 							</div>
 					</div>

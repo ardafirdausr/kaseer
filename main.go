@@ -12,8 +12,10 @@ import (
 )
 
 var DB *sql.DB
+
 var SessionStore *sessions.CookieStore
-var GoPosSession *sessions.Session
+
+const SessionName = "go_pos_session"
 
 func main() {
 	err := godotenv.Load()
@@ -36,8 +38,7 @@ func main() {
 	if sessionKey == "" {
 		sessionKey = "secret-session-key"
 	}
-	SessionStore = sessions.NewCookieStore([]byte(sessionKey))
-	GoPosSession = sessions.NewSession(SessionStore, "go_pos_session")
+	SessionStore = NewSessionStore(sessionKey)
 
 	router := InitRouter()
 	port := os.Getenv("APP_PORT")

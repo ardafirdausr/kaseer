@@ -273,12 +273,12 @@ func GetAllOrders() ([]Order, error) {
 
 type User struct {
 	ID        int64
-	Email     string
-	Name      string
-	Password  string
-	PhotoUrl  sql.NullString
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Name      string    `db:"name"`
+	Email     string    `db:"email"`
+	PhotoUrl  *string   `db:"omitempty,photo_url"`
+	Password  string    `db:"password"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 func (u *User) CheckPassword(password string) bool {
@@ -294,8 +294,8 @@ func findUserById(userId int64) (*User, error) {
 	var user User
 	var err = row.Scan(
 		&user.ID,
-		&user.Email,
 		&user.Name,
+		&user.Email,
 		&user.PhotoUrl,
 		&user.Password,
 		&user.CreatedAt,
@@ -314,8 +314,8 @@ func findUserByEmail(email string) (*User, error) {
 	var user User
 	var err = row.Scan(
 		&user.ID,
-		&user.Email,
 		&user.Name,
+		&user.Email,
 		&user.PhotoUrl,
 		&user.Password,
 		&user.CreatedAt,

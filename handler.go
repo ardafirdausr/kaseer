@@ -15,26 +15,29 @@ import (
 )
 
 func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SessionName)
 	data := M{
 		"Templates":    []string{"_meta", "_script"},
 		"Title":        "Login",
-		"ErrorMessage": GoPosSession.Flashes("error_message"),
+		"ErrorMessage": session.Flashes("error_message"),
 	}
-	renderView(w, "login", data)
+	renderView(w, r, "login", data)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SessionName)
+
 	err := r.ParseForm()
 	if err != nil {
-		renderErrorPage(w, http.StatusInternalServerError)
+		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	email := r.Form.Get("email")
 	user, err := findUserByEmail(email)
 	if err != nil || user == nil {
-		GoPosSession.AddFlash("Invalid Email Or Password", "error_message")
-		GoPosSession.Save(r, w)
+		session.AddFlash("Invalid Email Or Password", "error_message")
+		session.Save(r, w)
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 		return
 	}
@@ -42,21 +45,51 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	password := r.Form.Get("password")
 	isEqual := user.CheckPassword(password)
 	if !isEqual {
-		GoPosSession.AddFlash("Invalid Email Or Password", "error_message")
-		GoPosSession.Save(r, w)
+		session.AddFlash("Invalid Email Or Password", "error_message")
+		session.Save(r, w)
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 		return
 	}
 
-	GoPosSession.Values["user"] = user
-	GoPosSession.Save(r, w)
+	session.Values["user_id"] = user.ID
+	err = session.Save(r, w)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	GoPosSession.Values["user"] = nil
-	GoPosSession.Save(r, w)
+	session, _ := SessionStore.Get(r, SessionName)
+	session.Values["user"] = nil
+	session.Save(r, w)
 	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+}
+
+func ShowUserProfile(w http.ResponseWriter, r *http.Request) {
+	data := M{
+		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Title":      "Profile",
+		"ActiveMenu": "",
+	}
+	renderView(w, r, "profile", data)
+}
+
+func showEditUserProfileForm(w http.ResponseWriter, r *http.Request) {
+	data := M{
+		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Title":      "Edit Profile",
+		"ActiveMenu": "",
+	}
+	renderView(w, r, "profile_edit", data)
+}
+
+func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(4096); err != nil {
+		renderErrorPage(w, r, http.StatusInternalServerError)
+		return
+	}
+
 }
 
 func ShowDashboard(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +98,7 @@ func ShowDashboard(w http.ResponseWriter, r *http.Request) {
 		"Title":      "Dashboard",
 		"ActiveMenu": "dashboard",
 	}
-	renderView(w, "dashboard", data)
+	renderView(w, r, "dashboard", data)
 }
 
 func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +108,7 @@ func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
 		data := M{
 			"Templates": []string{"_meta", "_script"},
 		}
-		renderView(w, "500", data)
+		renderView(w, r, "500", data)
 		return
 	}
 
@@ -85,17 +118,18 @@ func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
 		"ActiveMenu": "products",
 		"Products":   products,
 	}
-	renderView(w, "products", data)
+	renderView(w, r, "products", data)
 }
 
 func ShowCreateProductForm(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SessionName)
 	data := M{
 		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":        "Create Product",
 		"ActiveMenu":   "products",
-		"ErrorMessage": GoPosSession.Flashes("error_message"),
+		"ErrorMessage": session.Flashes("error_message"),
 	}
-	renderView(w, "product_create", data)
+	renderView(w, r, "product_create", data)
 }
 
 func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +137,7 @@ func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
 	productId, _ := strconv.Atoi(vars["productId"])
 	product, err := FindProductById(productId)
 	if err != nil || product == nil {
-		renderErrorPage(w, http.StatusNotFound)
+		renderErrorPage(w, r, http.StatusNotFound)
 	}
 
 	data := M{
@@ -112,13 +146,15 @@ func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
 		"ActiveMenu": "products",
 		"Product":    product,
 	}
-	renderView(w, "product_edit", data)
+	renderView(w, r, "product_edit", data)
 }
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SessionName)
+
 	err := r.ParseForm()
 	if err != nil {
-		renderErrorPage(w, http.StatusInternalServerError)
+		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -133,7 +169,7 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err.Error())
 
-		GoPosSession.AddFlash("Invalid data", "error_message")
+		session.AddFlash(err.Error(), "error_message")
 
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
 		return
@@ -141,8 +177,9 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	err = product.Save()
 	if err != nil {
-		fmt.Println(err.Error())
 		log.Println(err.Error())
+		session.AddFlash(err.Error(), "error_message")
+
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
 		return
 	}
@@ -155,12 +192,12 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	productId, _ := strconv.Atoi(vars["productId"])
 	product, err := FindProductById(productId)
 	if err != nil || product == nil {
-		renderErrorPage(w, http.StatusNotFound)
+		renderErrorPage(w, r, http.StatusNotFound)
 	}
 
 	err = r.ParseForm()
 	if err != nil {
-		renderErrorPage(w, http.StatusInternalServerError)
+		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -183,7 +220,7 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	productId, _ := strconv.Atoi(vars["productId"])
 	product, err := FindProductById(productId)
 	if err != nil || product == nil {
-		renderErrorPage(w, http.StatusNotFound)
+		renderErrorPage(w, r, http.StatusNotFound)
 	}
 
 	err = product.Delete()
@@ -202,7 +239,7 @@ func ShowAllOrders(w http.ResponseWriter, r *http.Request) {
 		data := M{
 			"Templates": []string{"_meta", "_script"},
 		}
-		renderView(w, "500", data)
+		renderView(w, r, "500", data)
 		return
 	}
 
@@ -212,7 +249,7 @@ func ShowAllOrders(w http.ResponseWriter, r *http.Request) {
 		"ActiveMenu": "orders",
 		"Products":   orders,
 	}
-	renderView(w, "orders", data)
+	renderView(w, r, "orders", data)
 }
 
 func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
@@ -222,7 +259,7 @@ func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
 		data := M{
 			"Templates": []string{"_meta", "_script"},
 		}
-		renderView(w, "500", data)
+		renderView(w, r, "500", data)
 		return
 	}
 
@@ -232,13 +269,13 @@ func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
 		"ActiveMenu": "orderss",
 		"Products":   products,
 	}
-	renderView(w, "order_create", data)
+	renderView(w, r, "order_create", data)
 }
 
 func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		renderErrorPage(w, http.StatusInternalServerError)
+		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -249,7 +286,7 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}{}
 	err = json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		renderErrorPage(w, http.StatusInternalServerError)
+		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -262,14 +299,12 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
 	err = validate.Struct(order)
 	if err != nil {
-		fmt.Println(err.Error())
 		log.Println(err.Error())
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
 	}
 
 	err = order.Save()
 	if err != nil {
-		fmt.Println(err.Error())
 		log.Println(err.Error())
 		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
 		return
@@ -279,18 +314,21 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
-	renderErrorPage(w, http.StatusNotFound)
+	renderErrorPage(w, r, http.StatusNotFound)
 }
 
-func renderErrorPage(w http.ResponseWriter, errorCode int) {
+func renderErrorPage(w http.ResponseWriter, r *http.Request, errorCode int) {
 	templateName := strconv.Itoa(errorCode)
 	data := M{
 		"Templates": []string{"_meta", "_script"},
 	}
-	renderView(w, templateName, data)
+	renderView(w, r, templateName, data)
 }
 
-func renderView(w http.ResponseWriter, templateName string, data M) {
+func renderView(w http.ResponseWriter, r *http.Request, templateName string, data M) {
+	session, _ := SessionStore.Get(r, SessionName)
+	data["User"] = session.Values["user"]
+
 	var templatesPaths []string
 	if templates, isExist := data["Templates"]; isExist {
 		for _, template := range templates.([]string) {

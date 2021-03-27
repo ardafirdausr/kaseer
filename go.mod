@@ -14,6 +14,7 @@ require (
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
+	github.com/srinathgs/mysqlstore v0.0.0-20200417050510-9cbb9420fc4c // indirect
 	golang.org/x/sys v0.0.0-20210324051608-47abb6519492 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )

@@ -20,6 +20,12 @@ func InitRouter() http.Handler {
 	authRouter.HandleFunc("/login", Login).Methods("POST")
 	authRouter.HandleFunc("/logout", Logout).Methods("POST")
 
+	profileRouter := router.PathPrefix("/profile").Subrouter()
+	profileRouter.Use(AuthMiddleware)
+	profileRouter.HandleFunc("", ShowUserProfile).Methods("GET")
+	profileRouter.HandleFunc("/edit", showEditUserProfileForm).Methods("GET")
+	profileRouter.HandleFunc("", UpdateUserProfile).Methods("POST")
+
 	orderRouter := router.PathPrefix("/orders").Subrouter()
 	orderRouter.Use(AuthMiddleware)
 	orderRouter.HandleFunc("/create", ShowCreateOrderForm).Methods("GET")

@@ -1,4 +1,4 @@
-{{define "order_create"}}
+{{define "profile"}}
 <!doctype html>
 <html lang="en">
 
@@ -32,7 +32,7 @@
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">
                             <a href="/orders"><i class="fas fa-arrow-left mr-3"></i></a>
-                            Create Order
+                            Profile
                         </h1>
                     </div>
 
@@ -43,92 +43,37 @@
                         <!-- Area Chart -->
                         <div class="col-12">
                             <div class="card shadow mb-4">
-                                <!-- Card Header - Dropdown -->
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Create Order</h6>
-                                </div>
                                 <!-- Card Body -->
                                 <div class="card-body">
-                                    <form
-                                        action="/orders"
-                                        method="POST"
-                                        id="create-order-form">
-                                        <input type="hidden" name="order_items" id="order-items">
-                                        <div class="row">
-                                            <div class="col-12 col-md-6">
-                                                <div class="form-group">
-                                                    <label for="">Product</label>
-                                                    <select
-                                                        class="form-control select2"
-                                                        id="select-product"
-                                                        tabindex="1"
-                                                        autofocus>
-                                                        <option value="">Select Product</option>
-                                                        {{range .Products}}
-                                                            <option
-                                                                value="{{.ID}}"
-                                                                data-id="{{.ID}}"
-                                                                data-code="{{.Code}}"
-                                                                data-name="{{.Name}}"
-                                                                data-stock="{{.Stock}}"
-                                                                data-price="{{.Price}}">
-                                                                {{.Code}} - {{.Name}}
-                                                            </option>
-                                                        {{end}}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 col-md-6">
-                                                <div class="form-group">
-                                                    <label for="">Quantity</label>
-                                                    <input
-                                                        type="number"
-                                                        class="form-control"
-                                                        id="product-quantity"
-                                                        value="0"
-                                                        tabindex="2"
-                                                        required>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 col-md-6 mt-2 mt-md-0">
-                                                <button
-                                                    type="button"
-                                                    role="button"
-                                                    onclick="addProduct()"
-                                                    class="btn btn-block btn-success"
-                                                    tabindex="3">
-                                                    <i class="fas fa-plus mr-2"></i> Add
-                                                </button>
-                                            </div>
-                                            <div class="col-12 col-md-6 mt-2 mt-md-0">
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-block btn-primary"
-                                                    tabindex="4"
-                                                    id="submit-button"
-                                                    disabled>
-                                                    <i class="fas fa-arrow-right mr-2"></i> Process
-                                                </button>
+                                    <div class="row">
+                                        <div class="col-12 col-md-3">
+                                            {{if .User.PhotoUrl }}
+                                                <img
+                                                    src="{{.User.PhotoUrl}}"
+                                                    alt="{{.User.Name}}"
+                                                    style="width: 100%; object-fit: contain;">
+                                            {{else}}
+                                                <img
+                                                    src="/static/image/avatar_placeholder.png"
+                                                    alt="{{.User.Name}}"
+                                                    style="width: 100%; object-fit: contain;">
+                                            {{end}}
+                                        </div>
+                                        <div class="col-12 col-md-7">
+                                            <h1 class="mb-3 text-primary">Profile Data</h1>
+                                            <h5 class="mb-1">
+                                                <i class="fas fa-user mr-2"></i>{{ .User.Name }}
+                                            </h5>
+                                            <h5 class="text-muted mb-1">
+                                                <i class="fas fa-envelope mr-2"></i> {{ .User.Email }}
+                                            </h5>
+                                            <div class="mt-3">
+                                                <a href="/profile/edit" class="btn btn-success">
+                                                    <i class="fas fa-edit mr-2"></i> Edit Profile
+                                                </a>
                                             </div>
                                         </div>
-                                        <div id="focusguard" tabindex="5"></div>
-                                        <table class="table table-stripped mt-3">
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Kode</th>
-                                                    <th>Nama</th>
-                                                    <th>Kuantitas</th>
-                                                    <th class="text-right">Harga</th>
-                                                    <th class="text-right">SubTotal</th>
-                                                    <th></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="detail-order-item">
-                                            </tbody>
-                                        </table>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
