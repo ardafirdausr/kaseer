@@ -55,7 +55,7 @@ func (p *Product) Update() error {
 		return errors.New("Product code is already exists")
 	}
 
-	res, err := DB.Exec(
+	_, err = DB.Exec(
 		"UPDATE products SET code = ?, name = ?, stock = ?, price = ? WHERE id = ?",
 		p.Code, p.Name, p.Stock, p.Price, p.ID)
 	if err != nil {
@@ -63,26 +63,12 @@ func (p *Product) Update() error {
 		return err
 	}
 
-	rowAffected, err := res.RowsAffected()
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	} else if rowAffected < 1 {
-		return errors.New("Failed to update data")
-	}
-
 	return nil
 }
 
 func (p *Product) Delete() error {
-	res, err := DB.Exec("DELETE FROM products WHERE id = ?", p.ID)
+	_, err := DB.Exec("DELETE FROM products WHERE id = ?", p.ID)
 	if err != nil {
-		return err
-	}
-
-	p.ID, err = res.LastInsertId()
-	if err != nil {
-		log.Println(err.Error())
 		return err
 	}
 
@@ -295,21 +281,12 @@ func (u *User) CheckPassword(password string) bool {
 }
 
 func (u *User) Update() error {
-	fmt.Println(u.Name, u.Email, u.PhotoUrl, u.ID)
-	res, err := DB.Exec(
+	_, err := DB.Exec(
 		"UPDATE users SET name = ?, email = ?, photo_url = ? WHERE id = ?",
 		u.Name, u.Email, u.PhotoUrl, u.ID)
 	if err != nil {
 		log.Println(err.Error())
 		return err
-	}
-
-	rowAffected, err := res.RowsAffected()
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	} else if rowAffected < 1 {
-		return errors.New("Failed to update data")
 	}
 
 	return nil

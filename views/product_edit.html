@@ -51,6 +51,9 @@
                                 <!-- Card Body -->
                                 <div class="card-body">
                                     <form action="/products/{{.Product.ID}}/update" method="POST">
+                                        {{if .ErrorMessage}}
+											<div class="alert alert-warning text-center">{{.ErrorMessage}}</div>
+										{{end}}
                                         <div class="row">
                                             <div class="col-12 col-md-6">
                                                 <div class="form-group">

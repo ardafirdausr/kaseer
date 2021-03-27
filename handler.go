@@ -208,6 +208,10 @@ func ShowCreateProductForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SESSIONNAME)
+	errorMessage := session.Flashes("error_message")
+	session.Save(r, w)
+
 	vars := mux.Vars(r)
 	productId, _ := strconv.Atoi(vars["productId"])
 	product, err := FindProductById(productId)
@@ -216,10 +220,11 @@ func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := M{
-		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
-		"Title":      "Edit Product",
-		"ActiveMenu": "products",
-		"Product":    product,
+		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Title":        "Edit Product",
+		"ActiveMenu":   "products",
+		"Product":      product,
+		"ErrorMessage": errorMessage,
 	}
 	renderView(w, r, "product_edit", data)
 }
@@ -260,11 +265,14 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	session, _ := SessionStore.Get(r, SESSIONNAME)
+
 	vars := mux.Vars(r)
 	productId, _ := strconv.Atoi(vars["productId"])
 	product, err := FindProductById(productId)
 	if err != nil || product == nil {
 		renderErrorPage(w, r, http.StatusNotFound)
+		return
 	}
 
 	if err := r.ParseForm(); err != nil {
@@ -278,6 +286,8 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	product.Price, _ = strconv.Atoi(r.Form.Get("price"))
 	if err := product.Update(); err != nil {
 		editUrl := fmt.Sprintf("/products/%d/edit", productId)
+		session.AddFlash(err.Error(), "error_message")
+		session.Save(r, w)
 		http.Redirect(w, r, editUrl, http.StatusSeeOther)
 		return
 	}
