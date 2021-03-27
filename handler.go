@@ -17,10 +17,13 @@ import (
 
 func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
 	session, _ := SessionStore.Get(r, SESSIONNAME)
+	errorMessage := session.Flashes("error_message")
+	session.Save(r, w)
+
 	data := M{
 		"Templates":    []string{"_meta", "_script"},
 		"Title":        "Login",
-		"ErrorMessage": session.Flashes("error_message"),
+		"ErrorMessage": errorMessage,
 	}
 	renderView(w, r, "login", data)
 }
@@ -77,22 +80,28 @@ func ShowUserProfile(w http.ResponseWriter, r *http.Request) {
 
 func showEditUserProfileForm(w http.ResponseWriter, r *http.Request) {
 	session, _ := SessionStore.Get(r, SESSIONNAME)
+	errorMessage := session.Flashes("error_message")
+	session.Save(r, w)
+
 	data := M{
 		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":        "Edit Profile",
 		"ActiveMenu":   "",
-		"ErrorMessage": session.Flashes("error_message"),
+		"ErrorMessage": errorMessage,
 	}
 	renderView(w, r, "profile_edit", data)
 }
 
 func showEditUserPasswordForm(w http.ResponseWriter, r *http.Request) {
 	session, _ := SessionStore.Get(r, SESSIONNAME)
+	errorMessage := session.Flashes("error_message")
+	session.Save(r, w)
+
 	data := M{
 		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":        "Edit Password",
 		"ActiveMenu":   "",
-		"ErrorMessage": session.Flashes("error_message"),
+		"ErrorMessage": errorMessage,
 	}
 	renderView(w, r, "profile_password", data)
 }
@@ -186,11 +195,14 @@ func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
 
 func ShowCreateProductForm(w http.ResponseWriter, r *http.Request) {
 	session, _ := SessionStore.Get(r, SESSIONNAME)
+	errorMessage := session.Flashes("error_message")
+	session.Save(r, w)
+
 	data := M{
 		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":        "Create Product",
 		"ActiveMenu":   "products",
-		"ErrorMessage": session.Flashes("error_message"),
+		"ErrorMessage": errorMessage,
 	}
 	renderView(w, r, "product_create", data)
 }
