@@ -190,6 +190,19 @@ func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
 	renderView(w, r, "products", data)
 }
 
+func GetBestSellerProductsData(w http.ResponseWriter, r *http.Request) {
+	products, err := GetBestSellerProducts()
+	if err != nil {
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
+		return
+	}
+
+	data := M{"message": "success", "data": products}
+	jsonResponse(w, data, http.StatusOK)
+	return
+}
+
 func ShowCreateProductForm(w http.ResponseWriter, r *http.Request) {
 	session, _ := SessionStore.Get(r, SESSIONNAME)
 	errorMessage := session.Flashes("error_message")
@@ -348,7 +361,7 @@ func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
 	renderView(w, r, "order_create", data)
 }
 
-func ShowOrderDetail(w http.ResponseWriter, r *http.Request) {
+func GetOrderDetailData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	orderId, _ := strconv.Atoi(vars["orderId"])
@@ -362,6 +375,56 @@ func ShowOrderDetail(w http.ResponseWriter, r *http.Request) {
 	data := M{"message": "success", "data": products}
 	jsonResponse(w, data, http.StatusOK)
 	return
+}
+
+func GetTotalOrdersData(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
+		return
+	}
+
+	totalOrderType := r.Form.Get("type")
+	val, err := GetTotalOrders(totalOrderType)
+	if err != nil {
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
+		return
+	}
+
+	data := M{"message": "success", "data": val}
+	jsonResponse(w, data, http.StatusOK)
+	return
+}
+
+func GetLatestEarningData(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
+		return
+	}
+
+	earningType := r.Form.Get("type")
+	val, err := GetLastEarning(earningType)
+	if err != nil {
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
+		return
+	}
+
+	data := M{"message": "success", "data": val}
+	jsonResponse(w, data, http.StatusOK)
+	return
+}
+
+func GetAnnualEarningData(w http.ResponseWriter, r *http.Request) {
+	// val, err := GetLastEarning(earningType)
+	// if err != nil {
+	// 	data := M{"message": "success", "data": val}
+	// 	jsonResponse(w, data, http.StatusInternalServerError)
+	// }
 }
 
 func CreateOrder(w http.ResponseWriter, r *http.Request) {

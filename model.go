@@ -23,6 +23,13 @@ type Product struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type ProductSold struct {
+	ID         int64  `json:"id"`
+	Code       string `json:"code"`
+	Name       string `json:"name"`
+	TotalSales int    `json:"totalsales"`
+}
+
 func (p *Product) Save() error {
 	existProduct, err := FindProductByCode(p.Code)
 	if err != nil {
@@ -96,6 +103,38 @@ func GetAllProducts() ([]Product, error) {
 			&product.Stock,
 			&product.CreatedAt,
 			&product.UpdatedAt,
+		)
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+	if err = rows.Err(); err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	return products, nil
+}
+
+func GetBestSellerProducts() ([]ProductSold, error) {
+	rows, err := DB.Query("SELECT p.ID, p.Code, p.Name, SUM(oi.quantity) as total_sales FROM products AS p  JOIN order_items AS oi ON p.id = oi.product_id GROUP BY oi.product_id ORDER BY total_sales DESC LIMIT 5")
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var products []ProductSold
+	for rows.Next() {
+		var product = ProductSold{}
+		var err = rows.Scan(
+			&product.ID,
+			&product.Code,
+			&product.Name,
+			&product.TotalSales,
 		)
 		if err != nil {
 			log.Println(err.Error())
@@ -295,6 +334,36 @@ func GetOrderDetail(orderId int) ([]ProductOrderDetail, error) {
 	}
 
 	return products, nil
+}
+
+func GetTotalOrders(totalOrderType string) (int, error) {
+	query := ""
+	switch totalOrderType {
+	case "day":
+		query = "SELECT COUNT(*) FROM orders WHERE DAY(created_At) = DAY(CURRENT_TIMESTAMP())"
+	default:
+		query = "SELECT COUNT(*) FROM orders"
+	}
+
+	var val int
+	DB.QueryRow(query).Scan(&val)
+	return val, nil
+}
+
+func GetLastEarning(earningType string) (int, error) {
+	query := ""
+	switch earningType {
+	case "month":
+		query = "SELECT SUM(total) FROM orders WHERE MONTH(created_At) = MONTH(CURRENT_TIMESTAMP()) GROUP BY MONTH(created_At)"
+	case "day":
+		query = "SELECT SUM(total) FROM orders WHERE DAY(created_At) = DAY(CURRENT_TIMESTAMP()) GROUP BY DAY(created_At)"
+	default:
+		return 0, errors.New("Invalid type")
+	}
+
+	var val int
+	DB.QueryRow(query).Scan(&val)
+	return val, nil
 }
 
 type User struct {
