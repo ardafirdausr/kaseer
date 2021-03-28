@@ -9,7 +9,6 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -139,8 +138,6 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	photoName := fmt.Sprintf("user-%d", user.ID)
 	filename, err := SaveUploadedFile(r, "photo", photoDirectory, photoName)
 	if err != nil {
-		fmt.Println(129)
-		fmt.Println(err.Error())
 		session.AddFlash(err.Error(), "error_message")
 		session.Save(r, w)
 		http.Redirect(w, r, "/profile/edit", http.StatusSeeOther)
@@ -148,19 +145,19 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	photoUrl := fmt.Sprintf("/static/storage/image/%s", filename)
+	user.PhotoUrl = &photoUrl
 
 	user.Name = r.Form.Get("name")
 	user.Email = r.Form.Get("email")
-	user.PhotoUrl = &photoUrl
 	if err := user.Update(); err != nil {
-		fmt.Println(143)
-		fmt.Println(err.Error())
 		session.AddFlash("Failed to update data", "error_message")
 		session.Save(r, w)
 		http.Redirect(w, r, "/profile/edit", http.StatusSeeOther)
 		return
 	}
 
+	session.Values["user"] = user
+	session.Save(r, w)
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }
 
@@ -326,7 +323,7 @@ func ShowAllOrders(w http.ResponseWriter, r *http.Request) {
 		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":      "All Products",
 		"ActiveMenu": "orders",
-		"Products":   orders,
+		"Orders":     orders,
 	}
 	renderView(w, r, "orders", data)
 }
@@ -345,48 +342,66 @@ func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
 	data := M{
 		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
 		"Title":      "Create Order",
-		"ActiveMenu": "orderss",
+		"ActiveMenu": "orders",
 		"Products":   products,
 	}
 	renderView(w, r, "order_create", data)
 }
 
-func CreateOrder(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+func ShowOrderDetail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	orderId, _ := strconv.Atoi(vars["orderId"])
+	products, err := GetOrderDetail(orderId)
 	if err != nil {
-		renderErrorPage(w, r, http.StatusInternalServerError)
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
 		return
 	}
 
-	now := time.Now()
+	data := M{"message": "success", "data": products}
+	jsonResponse(w, data, http.StatusOK)
+	return
+}
 
-	payload := struct {
-		OrderItems []OrderItem `json:"order_items"`
-	}{}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		renderErrorPage(w, r, http.StatusInternalServerError)
+func CreateOrder(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err.Error())
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
 		return
 	}
 
 	order := &Order{}
-	order.Code = fmt.Sprintf("%d%d%d", now.Year(), now.Month(), now.Day())
 
-	// order.Stock, _ = strconv.Atoi(r.Form.Get("stock"))
-	// order.Price, _ = strconv.Atoi(r.Form.Get("price"))
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(order); err != nil {
+		log.Println(err.Error())
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
+		return
+	}
 
 	validate := validator.New()
 	if err := validate.Struct(order); err != nil {
 		log.Println(err.Error())
-		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
+		return
 	}
 
 	if err := order.Save(); err != nil {
 		log.Println(err.Error())
-		http.Redirect(w, r, "/products/create", http.StatusSeeOther)
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/order_create", http.StatusSeeOther)
+	data := M{"message": "success"}
+	jsonResponse(w, data, http.StatusCreated)
+	return
 }
 
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
@@ -422,4 +437,15 @@ func renderView(w http.ResponseWriter, r *http.Request, templateName string, dat
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func jsonResponse(w http.ResponseWriter, data M, status int) {
+	var payload, err = json.Marshal(data)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	w.WriteHeader(status)
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(payload)
 }

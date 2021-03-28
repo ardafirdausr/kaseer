@@ -31,6 +31,7 @@ func InitRouter() http.Handler {
 	orderRouter := router.PathPrefix("/orders").Subrouter()
 	orderRouter.Use(AuthMiddleware)
 	orderRouter.HandleFunc("/create", ShowCreateOrderForm).Methods("GET")
+	orderRouter.HandleFunc("/{orderId:[0-9]+}", ShowOrderDetail).Methods("GET")
 	orderRouter.HandleFunc("", ShowAllOrders).Methods("GET")
 	orderRouter.HandleFunc("", CreateOrder).Methods("POST")
 

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -160,20 +161,33 @@ func FindProductById(id int) (*Product, error) {
 }
 
 type Order struct {
-	ID        int64     `db:"id"`
-	Code      string    `db:"code"`
-	Total     string    `db:"total"`
-	CreatedAt time.Time `db:"created_at"`
-	Items     []OrderItem
+	ID        int64       `db:"id" json:"id,omitempty"`
+	Total     int         `db:"total" json:"total"`
+	CreatedAt time.Time   `db:"created_at" json:"created_at,omitempty"`
+	Items     []OrderItem `json:"order_items" validate:"required"`
 }
 
 type OrderItem struct {
-	ID        int64     `db:"id"`
-	OrderId   int64     `db:"order_id" validate:"required" `
-	ProductId int64     `db:"product_id" validate:"required"`
-	Quantity  string    `db:"quantity" validate:"required"`
-	Subtotal  int       `db:"subtotal" validate:"required"`
-	CreatedAt time.Time `db:"created_at"`
+	ID        int64     `db:"id" json:"id,omitempty"`
+	OrderId   int64     `db:"order_id" json:"order_id,omitempty"`
+	ProductId int64     `db:"product_id" json:"product_id" validate:"required"`
+	Quantity  int       `db:"quantity" json:"quantity" validate:"required"`
+	Subtotal  int       `db:"subtotal" json:"subtotal,omitempty"`
+	CreatedAt time.Time `db:"created_at" json:"created_at,omitempty"`
+	Product   Product
+}
+
+type ProductOrderDetail struct {
+	ID       int64  `json:"id"`
+	Code     string `json:"code"`
+	Name     string `json:"name"`
+	Price    int    `json:"price"`
+	Quantity int    `json:"quantity"`
+	Subtotal int    `json:"subtotal"`
+}
+
+func (o *Order) FormatDate() string {
+	return o.CreatedAt.Format("02 January 2006 - 15:04 WIB")
 }
 
 func (o *Order) Save() error {
@@ -181,51 +195,49 @@ func (o *Order) Save() error {
 	ctx := context.Background()
 	tx, err := DB.BeginTx(ctx, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 
-	ors, err := tx.ExecContext(ctx, "INSERT INTO orders(code, total) VALUES(?, ?)", o.Code, o.Total)
+	ors, err := tx.ExecContext(ctx, "INSERT INTO orders(total) VALUES(?)", o.Total)
 	if err != nil {
 		tx.Rollback()
-		log.Fatal(err)
+		log.Fatal(err.Error())
 		return err
 	}
 
 	orderId, err := ors.LastInsertId()
 	if err != nil {
 		tx.Rollback()
-		log.Fatal(err)
+		log.Fatal(err.Error())
 		return err
 	}
 
-	sqlStr := "INSERT INTO order_items(order_id, product_id, quantity, subtotal) VALUES "
+	params := []string{}
 	vals := []interface{}{}
-
 	for _, item := range o.Items {
-		sqlStr += "(?, ?, ?, ?),"
+		params = append(params, "(?, ?, ?, ?)")
 		vals = append(vals, orderId, item.ProductId, item.Quantity, item.Subtotal)
 		item.OrderId = orderId
 	}
 
-	sqlStr = sqlStr[0 : len(sqlStr)-1]
-	stmt, err := DB.PrepareContext(ctx, sqlStr)
-	_, err = stmt.Exec(vals...)
+	query := fmt.Sprintf("INSERT INTO order_items(order_id, product_id, quantity, subtotal) VALUES %s", strings.Join(params, ", "))
+	_, err = tx.ExecContext(ctx, query, vals...)
 	if err != nil {
 		tx.Rollback()
-		log.Fatal(err)
+		log.Fatal(err.Error())
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 
 	return nil
 }
 
 func GetAllOrders() ([]Order, error) {
-	rows, err := DB.Query("SELECT * FROM orders")
+	rows, err := DB.Query("SELECT * from orders ORDER BY created_at DESC")
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -234,10 +246,9 @@ func GetAllOrders() ([]Order, error) {
 
 	var orders []Order
 	for rows.Next() {
-		var order = Order{}
+		var order Order
 		var err = rows.Scan(
 			&order.ID,
-			&order.Code,
 			&order.Total,
 			&order.CreatedAt,
 		)
@@ -254,6 +265,36 @@ func GetAllOrders() ([]Order, error) {
 	}
 
 	return orders, nil
+}
+
+func GetOrderDetail(orderId int) ([]ProductOrderDetail, error) {
+	rows, err := DB.Query("SELECT p.id, p.code, p.name, p.price, oi.quantity, oi.subtotal FROM order_items AS oi LEFT JOIN products AS p ON oi.product_id = p.id WHERE oi.order_id = ?", orderId)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	var products []ProductOrderDetail
+
+	for rows.Next() {
+		var product ProductOrderDetail
+		var err = rows.Scan(
+			&product.ID,
+			&product.Code,
+			&product.Name,
+			&product.Price,
+			&product.Quantity,
+			&product.Subtotal,
+		)
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	return products, nil
 }
 
 type User struct {

@@ -39,7 +39,6 @@
                     <!-- Content Row -->
 
                     <div class="row">
-
                         <!-- Area Chart -->
                         <div class="col-12">
                             <div class="card shadow mb-4">
@@ -50,11 +49,13 @@
                                 </div>
                                 <!-- Card Body -->
                                 <div class="card-body">
-                                    <form
-                                        action="/orders"
-                                        method="POST"
-                                        id="create-order-form">
-                                        <input type="hidden" name="order_items" id="order-items">
+                                    <div class="alert alert-success" style="display: none;" id="success-alert">
+                                        Order Success
+                                    </div>
+                                    <div class="alert alert-danger" style="display: none;" id="failed-alert">
+                                        Order Failed
+                                    </div>
+                                    <form id="create-order-form">
                                         <div class="row">
                                             <div class="col-12 col-md-6">
                                                 <div class="form-group">
@@ -103,10 +104,12 @@
                                             </div>
                                             <div class="col-12 col-md-6 mt-2 mt-md-0">
                                                 <button
-                                                    type="submit"
+                                                    type="button"
+                                                    role="button"
                                                     class="btn btn-block btn-primary"
                                                     tabindex="4"
                                                     id="submit-button"
+                                                    onclick="makeOrder()"
                                                     disabled>
                                                     <i class="fas fa-arrow-right mr-2"></i> Process
                                                 </button>
@@ -177,22 +180,59 @@
         </tr>
     </template>
 
-    <!-- Logout Modal-->
-
     {{template "_script"}}
     <script>
         var detailOrderItems = [];
-        var orderItems = [];
+
+        function makeOrder() {
+            // this code should be in backend
+            total = 0;
+            orderItems = [];
+            detailOrderItems.forEach(function(item) {
+                total += item.subtotal;
+                orderItems.push({
+                    product_id: item.id,
+                    quantity: item.quantity,
+                    subtotal: item.subtotal
+                });
+            })
+
+            $.ajax({
+                url: "/orders",
+                method: "POST",
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    total: total,
+                    order_items: orderItems
+                }),
+                beforeSend: function() {
+                    $('#submit-button').attr('disabled', true)
+                    $('#submit-button').html('<div class="spinner-border spinner-border-sm text-light" role="status"></div>')
+                },
+                success: function(res) {
+                    detailOrderItems = [];
+                    orderItems = [];
+                    renderItems();
+                    $("#success-alert").show().delay(5000).fadeOut();
+                },
+                error: function(res) {
+                    console.log(res)
+                    $("#failed-alert").show().delay(5000).fadeOut();
+                },
+                complete: function() {
+                    $('#submit-button').attr('disabled', false)
+                    $('#submit-button').html('<i class="fas fa-arrow-right mr-2"></i> Process')
+                }
+            })
+        }
 
         function addProduct() {
             let selectedOption = $('#select-product').find(':selected');
-            let selectedId = $('#select-product').val();
+            let selectedId = Number($('#select-product').val());
             let orderQuantity = Number($('#product-quantity').val());
 
-            if (!selectedId.length || !orderQuantity) {
-                return
-            }
-
+            if (!selectedId || !orderQuantity) return
 
             detailOrderItem = detailOrderItems.find(item => item.id == selectedId)
             if (!detailOrderItem) {
@@ -207,16 +247,6 @@
             } else {
                 detailOrderItem.quantity += orderQuantity
                 detailOrderItem.subtotal = detailOrderItem.quantity * detailOrderItem.price
-            }
-
-            orderItem = orderItems.find(item => item.id == selectedId)
-            if (!orderItem) {
-                orderItems.push({
-                    id: selectedId,
-                    quantity: orderQuantity,
-                });
-            } else {
-                orderItem.quantity += quantity;
             }
 
             resetForm();
@@ -238,7 +268,7 @@
         }
 
         function activateProcessButton() {
-            if (orderItems.length < 1) {
+            if (detailOrderItems.length < 1) {
                 $('#submit-button').attr('disabled', true)
                 return
             }
@@ -271,13 +301,6 @@
                 $('#detail-order-item').append(temp.html())
             }
         }
-
-        $('#create-order-form').on('submit', function(e) {
-            e.preventDefault()
-            let orderItemsJson = JSON.stringify(orderItems);
-            $('#order-items').val(orderItemsJson)
-            $('#create-order-form').off().submit();
-        })
 
         $('#select-product').on('change', function() {
             $('#product-quantity').val(0)
