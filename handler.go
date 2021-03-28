@@ -420,11 +420,14 @@ func GetLatestEarningData(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAnnualEarningData(w http.ResponseWriter, r *http.Request) {
-	// val, err := GetLastEarning(earningType)
-	// if err != nil {
-	// 	data := M{"message": "success", "data": val}
-	// 	jsonResponse(w, data, http.StatusInternalServerError)
-	// }
+	val, err := GetAnnualEarning()
+	if err != nil {
+		data := M{"error": err.Error()}
+		jsonResponse(w, data, http.StatusInternalServerError)
+	}
+
+	data := M{"message": "success", "data": val}
+	jsonResponse(w, data, http.StatusOK)
 }
 
 func CreateOrder(w http.ResponseWriter, r *http.Request) {

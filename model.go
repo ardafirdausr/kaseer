@@ -23,13 +23,6 @@ type Product struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-type ProductSold struct {
-	ID         int64  `json:"id"`
-	Code       string `json:"code"`
-	Name       string `json:"name"`
-	TotalSales int    `json:"totalsales"`
-}
-
 func (p *Product) Save() error {
 	existProduct, err := FindProductByCode(p.Code)
 	if err != nil {
@@ -119,28 +112,36 @@ func GetAllProducts() ([]Product, error) {
 	return products, nil
 }
 
-func GetBestSellerProducts() ([]ProductSold, error) {
-	rows, err := DB.Query("SELECT p.ID, p.Code, p.Name, SUM(oi.quantity) as total_sales FROM products AS p  JOIN order_items AS oi ON p.id = oi.product_id GROUP BY oi.product_id ORDER BY total_sales DESC LIMIT 5")
+func GetBestSellerProducts() ([]M, error) {
+	rows, err := DB.Query(`
+		SELECT p.ID, p.Code, p.Name, SUM(oi.quantity) as total_sales
+			FROM products AS p  JOIN order_items AS oi
+			ON p.id = oi.product_id
+			GROUP BY oi.product_id
+			ORDER BY total_sales DESC
+			LIMIT 5`)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
 
-	var products []ProductSold
+	var products []M
 	for rows.Next() {
-		var product = ProductSold{}
-		var err = rows.Scan(
-			&product.ID,
-			&product.Code,
-			&product.Name,
-			&product.TotalSales,
-		)
+		var id, totalsales int
+		var code, name string
+		var err = rows.Scan(&id, &code, &name, &totalsales)
 		if err != nil {
 			log.Println(err.Error())
 			return nil, err
 		}
 
+		var product = M{
+			"id":         id,
+			"code":       code,
+			"name":       name,
+			"totalsales": totalsales,
+		}
 		products = append(products, product)
 	}
 	if err = rows.Err(); err != nil {
@@ -214,15 +215,6 @@ type OrderItem struct {
 	Subtotal  int       `db:"subtotal" json:"subtotal,omitempty"`
 	CreatedAt time.Time `db:"created_at" json:"created_at,omitempty"`
 	Product   Product
-}
-
-type ProductOrderDetail struct {
-	ID       int64  `json:"id"`
-	Code     string `json:"code"`
-	Name     string `json:"name"`
-	Price    int    `json:"price"`
-	Quantity int    `json:"quantity"`
-	Subtotal int    `json:"subtotal"`
 }
 
 func (o *Order) FormatDate() string {
@@ -306,34 +298,80 @@ func GetAllOrders() ([]Order, error) {
 	return orders, nil
 }
 
-func GetOrderDetail(orderId int) ([]ProductOrderDetail, error) {
-	rows, err := DB.Query("SELECT p.id, p.code, p.name, p.price, oi.quantity, oi.subtotal FROM order_items AS oi LEFT JOIN products AS p ON oi.product_id = p.id WHERE oi.order_id = ?", orderId)
+func GetOrderDetail(orderId int) ([]M, error) {
+	rows, err := DB.Query(`
+		SELECT p.id, p.code, p.name, p.price, oi.quantity, oi.subtotal
+			FROM order_items AS oi
+			LEFT JOIN products AS p ON oi.product_id = p.id
+			WHERE oi.order_id = ?`,
+		orderId)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
 
-	var products []ProductOrderDetail
+	var products []M
 
 	for rows.Next() {
-		var product ProductOrderDetail
-		var err = rows.Scan(
-			&product.ID,
-			&product.Code,
-			&product.Name,
-			&product.Price,
-			&product.Quantity,
-			&product.Subtotal,
-		)
+		var code, name string
+		var id, price, quantity, subtotal int
+		var err = rows.Scan(&id, &code, &name, &price, &quantity, &subtotal)
 		if err != nil {
 			log.Println(err.Error())
 			return nil, err
 		}
 
+		product := M{
+			"id":       id,
+			"code":     code,
+			"name":     name,
+			"price":    price,
+			"quantity": quantity,
+			"subtotal": subtotal,
+		}
 		products = append(products, product)
 	}
 
 	return products, nil
+}
+
+func GetAnnualEarning() ([]M, error) {
+	query := `
+		SELECT YEAR(created_at) as year, MONTHNAME(created_at) as mount, SUM(total) as earning
+			FROM orders
+			WHERE MONTH(created_at) -12 AND MONTH(created_at)
+			ORDER BY YEAR(created_at) ASC, MONTH(created_at) ASC
+			GROUP BY YEAR(created_at), MONTHNAME(created_at), MONTH(created_at)`
+	rows, err := DB.Query(query)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var vals []M
+	for rows.Next() {
+		var year, earning int
+		var month string
+		var err = rows.Scan(&year, &month, &earning)
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
+
+		val := M{
+			"year":    year,
+			"month":   month,
+			"earning": earning,
+		}
+		vals = append(vals, val)
+	}
+	if err = rows.Err(); err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	return vals, nil
 }
 
 func GetTotalOrders(totalOrderType string) (int, error) {
@@ -354,9 +392,17 @@ func GetLastEarning(earningType string) (int, error) {
 	query := ""
 	switch earningType {
 	case "month":
-		query = "SELECT SUM(total) FROM orders WHERE MONTH(created_At) = MONTH(CURRENT_TIMESTAMP()) GROUP BY MONTH(created_At)"
+		query = `
+			SELECT SUM(total)
+				FROM orders
+				WHERE MONTH(created_At) = MONTH(CURRENT_TIMESTAMP())
+				GROUP BY MONTH(created_At)`
 	case "day":
-		query = "SELECT SUM(total) FROM orders WHERE DAY(created_At) = DAY(CURRENT_TIMESTAMP()) GROUP BY DAY(created_At)"
+		query = `
+			SELECT SUM(total)
+				FROM orders
+				WHERE DAY(created_At) = DAY(CURRENT_TIMESTAMP())
+				GROUP BY DAY(created_At)`
 	default:
 		return 0, errors.New("Invalid type")
 	}
