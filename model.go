@@ -340,8 +340,8 @@ func GetAnnualEarning() ([]M, error) {
 		SELECT YEAR(created_at) as year, MONTHNAME(created_at) as mount, SUM(total) as earning
 			FROM orders
 			WHERE MONTH(created_at) -12 AND MONTH(created_at)
-			ORDER BY YEAR(created_at) ASC, MONTH(created_at) ASC
-			GROUP BY YEAR(created_at), MONTHNAME(created_at), MONTH(created_at)`
+			GROUP BY YEAR(created_at), MONTHNAME(created_at), MONTH(created_at)
+			ORDER BY YEAR(created_at) ASC, MONTH(created_at) ASC`
 	rows, err := DB.Query(query)
 	if err != nil {
 		log.Println(err.Error())

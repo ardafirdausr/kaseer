@@ -14,5 +14,10 @@ func ConnectToDB(host string, port string, username string, password string, DBN
 		return nil, err
 	}
 
+	err = DB.Ping()
+	if err != nil {
+		return nil, err
+	}
+
 	return DB, nil
 }
