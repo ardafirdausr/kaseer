@@ -20,11 +20,14 @@ func ShowLoginForm(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	data := M{
-		"Templates":    []string{"_meta", "_script"},
-		"Title":        "Login",
+		"Layout":       "guest",
+		"Page":         "login",
+		"Title":        "Dashboard",
+		"ActiveMenu":   "dashboard",
 		"ErrorMessage": errorMessage,
 	}
-	renderView(w, r, "login", data)
+
+	renderView(w, r, data)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -70,11 +73,12 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 func ShowUserProfile(w http.ResponseWriter, r *http.Request) {
 	data := M{
-		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Layout":     "admin",
+		"Page":       "profile",
 		"Title":      "Profile",
 		"ActiveMenu": "",
 	}
-	renderView(w, r, "profile", data)
+	renderView(w, r, data)
 }
 
 func showEditUserProfileForm(w http.ResponseWriter, r *http.Request) {
@@ -83,12 +87,13 @@ func showEditUserProfileForm(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	data := M{
-		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Layout":       "admin",
+		"Page":         "profile_edit",
 		"Title":        "Edit Profile",
 		"ActiveMenu":   "",
 		"ErrorMessage": errorMessage,
 	}
-	renderView(w, r, "profile_edit", data)
+	renderView(w, r, data)
 }
 
 func showEditUserPasswordForm(w http.ResponseWriter, r *http.Request) {
@@ -97,12 +102,13 @@ func showEditUserPasswordForm(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	data := M{
-		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Layout":       "admin",
+		"Page":         "profile_password",
 		"Title":        "Edit Password",
 		"ActiveMenu":   "",
 		"ErrorMessage": errorMessage,
 	}
-	renderView(w, r, "profile_password", data)
+	renderView(w, r, data)
 }
 
 func UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
@@ -163,31 +169,30 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 
 func ShowDashboard(w http.ResponseWriter, r *http.Request) {
 	data := M{
-		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Layout":     "admin",
+		"Page":       "dashboard",
 		"Title":      "Dashboard",
 		"ActiveMenu": "dashboard",
 	}
-	renderView(w, r, "dashboard", data)
+	renderView(w, r, data)
 }
 
 func ShowAllProducts(w http.ResponseWriter, r *http.Request) {
 	products, err := GetAllProducts()
 	if err != nil {
 		log.Println(err.Error())
-		data := M{
-			"Templates": []string{"_meta", "_script"},
-		}
-		renderView(w, r, "500", data)
+		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	data := M{
-		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Layout":     "admin",
+		"Page":       "products",
 		"Title":      "All Products",
 		"ActiveMenu": "products",
 		"Products":   products,
 	}
-	renderView(w, r, "products", data)
+	renderView(w, r, data)
 }
 
 func GetBestSellerProductsData(w http.ResponseWriter, r *http.Request) {
@@ -200,7 +205,6 @@ func GetBestSellerProductsData(w http.ResponseWriter, r *http.Request) {
 
 	data := M{"message": "success", "data": products}
 	jsonResponse(w, data, http.StatusOK)
-	return
 }
 
 func ShowCreateProductForm(w http.ResponseWriter, r *http.Request) {
@@ -209,12 +213,13 @@ func ShowCreateProductForm(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	data := M{
-		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Layout":       "admin",
+		"Page":         "product_create",
 		"Title":        "Create Product",
 		"ActiveMenu":   "products",
 		"ErrorMessage": errorMessage,
 	}
-	renderView(w, r, "product_create", data)
+	renderView(w, r, data)
 }
 
 func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
@@ -230,13 +235,14 @@ func ShowEditProductForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := M{
-		"Templates":    []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Layout":       "admin",
+		"Page":         "product_edit",
 		"Title":        "Edit Product",
 		"ActiveMenu":   "products",
 		"Product":      product,
 		"ErrorMessage": errorMessage,
 	}
-	renderView(w, r, "product_edit", data)
+	renderView(w, r, data)
 }
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
@@ -325,40 +331,36 @@ func ShowAllOrders(w http.ResponseWriter, r *http.Request) {
 	orders, err := GetAllOrders()
 	if err != nil {
 		log.Println(err.Error())
-		data := M{
-			"Templates": []string{"_meta", "_script"},
-		}
-		renderView(w, r, "500", data)
+		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	data := M{
-		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
-		"Title":      "All Products",
+		"Layout":     "admin",
+		"Page":       "orders",
+		"Title":      "All Orders",
 		"ActiveMenu": "orders",
 		"Orders":     orders,
 	}
-	renderView(w, r, "orders", data)
+	renderView(w, r, data)
 }
 
 func ShowCreateOrderForm(w http.ResponseWriter, r *http.Request) {
 	products, err := GetAllProducts()
 	if err != nil {
 		log.Println(err.Error())
-		data := M{
-			"Templates": []string{"_meta", "_script"},
-		}
-		renderView(w, r, "500", data)
+		renderErrorPage(w, r, http.StatusInternalServerError)
 		return
 	}
 
 	data := M{
-		"Templates":  []string{"_meta", "_navbar", "_sidebar", "_footer", "_script"},
+		"Layout":     "admin",
+		"Page":       "order_create",
 		"Title":      "Create Order",
 		"ActiveMenu": "orders",
 		"Products":   products,
 	}
-	renderView(w, r, "order_create", data)
+	renderView(w, r, data)
 }
 
 func GetOrderDetailData(w http.ResponseWriter, r *http.Request) {
@@ -374,7 +376,6 @@ func GetOrderDetailData(w http.ResponseWriter, r *http.Request) {
 
 	data := M{"message": "success", "data": products}
 	jsonResponse(w, data, http.StatusOK)
-	return
 }
 
 func GetTotalOrdersData(w http.ResponseWriter, r *http.Request) {
@@ -395,7 +396,6 @@ func GetTotalOrdersData(w http.ResponseWriter, r *http.Request) {
 
 	data := M{"message": "success", "data": val}
 	jsonResponse(w, data, http.StatusOK)
-	return
 }
 
 func GetLatestEarningData(w http.ResponseWriter, r *http.Request) {
@@ -416,7 +416,6 @@ func GetLatestEarningData(w http.ResponseWriter, r *http.Request) {
 
 	data := M{"message": "success", "data": val}
 	jsonResponse(w, data, http.StatusOK)
-	return
 }
 
 func GetAnnualEarningData(w http.ResponseWriter, r *http.Request) {
@@ -467,7 +466,6 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 	data := M{"message": "success"}
 	jsonResponse(w, data, http.StatusCreated)
-	return
 }
 
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
@@ -477,29 +475,22 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 func renderErrorPage(w http.ResponseWriter, r *http.Request, errorCode int) {
 	templateName := strconv.Itoa(errorCode)
 	data := M{
-		"Templates": []string{"_meta", "_script"},
+		"Layout": "guest",
+		"Page":   templateName,
 	}
-	renderView(w, r, templateName, data)
+	renderView(w, r, data)
 }
 
-func renderView(w http.ResponseWriter, r *http.Request, templateName string, data M) {
+func renderView(w http.ResponseWriter, r *http.Request, data M) {
 	session, _ := SessionStore.Get(r, SESSIONNAME)
 	data["User"] = session.Values["user"]
 
-	var templatesPaths []string
-	if templates, isExist := data["Templates"]; isExist {
-		for _, template := range templates.([]string) {
-			templatePath := path.Join("views", template+".html")
-			templatesPaths = append(templatesPaths, templatePath)
-		}
-	}
+	layoutPath := path.Join("views", "layouts", data["Layout"].(string)+".html")
+	pagePath := path.Join("views", "pages", data["Page"].(string)+".html")
 
-	mainTemplatePath := path.Join("views", templateName+".html")
-	templatesPaths = append(templatesPaths, mainTemplatePath)
+	t := template.Must(template.ParseFiles(pagePath, layoutPath))
 
-	t := template.Must(template.ParseFiles(templatesPaths...))
-	err := t.ExecuteTemplate(w, templateName, data)
-	if err != nil {
+	if err := t.ExecuteTemplate(w, data["Layout"].(string), data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

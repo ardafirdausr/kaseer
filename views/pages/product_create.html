@@ -1,0 +1,78 @@
+{{define "content"}}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <a href="/products"><i class="fas fa-arrow-left mr-3"></i></a>
+            Create Product
+        </h1>
+    </div>
+
+    <!-- Content Row -->
+
+    <div class="row">
+
+        <!-- Area Chart -->
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Create Product</h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <form action="/products" method="POST">
+                        {{if .ErrorMessage}}
+                            <div class="alert alert-warning text-center">{{.ErrorMessage}}</div>
+                        {{end}}
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="">Code</label>
+                                    <input type="text" class="form-control" name="code" required>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="">Name</label>
+                                    <input type="text" class="form-control" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="">Stock</label>
+                                    <input type="number" class="form-control" name="stock" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="">Price</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="number" class="form-control" name="price" min="1" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-primary ml-auto">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{{end}}
+
+{{define "script"}}
+{{end}}
+
+{{define "style"}}
+{{end}}
