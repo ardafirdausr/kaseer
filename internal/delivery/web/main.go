@@ -15,14 +15,14 @@ func Start(app *app.App) {
 
 	web.Static("/static/", "web/assets")
 
-	// .PathPrefix("/auth").Subrouter()
 	userController := controller.NewUserController(app.Usecases)
-	authRouter := web.Group("/auth")
 
-	guestRouter := authRouter.Group("", middleware.SessionGuest())
-	guestRouter.GET("/login", userController.ShowLoginForm)
-	guestRouter.POST("/login", userController.Login)
-	// authRouter.HandleFunc("/logout", Logout).Methods("POST")
+	authGuestRouter := web.Group("/auth", middleware.SessionGuest())
+	authGuestRouter.GET("/login", userController.ShowLoginForm)
+	authGuestRouter.POST("/login", userController.Login)
+
+	authAuthenticatedUserRouter := web.Group("/auth", middleware.SessionAuth())
+	authAuthenticatedUserRouter.POST("/logout", userController.Logout)
 
 	authenticatedGroup := web.Group("", middleware.SessionAuth())
 

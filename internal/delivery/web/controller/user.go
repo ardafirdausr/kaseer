@@ -55,3 +55,17 @@ func (uc UserController) Login(c echo.Context) error {
 	}
 	return c.Redirect(http.StatusSeeOther, "/dashboard")
 }
+
+func (uc UserController) Logout(c echo.Context) error {
+	sess, err := session.Get("GO-POS", c)
+	if err != nil {
+		log.Println(err)
+	}
+
+	sess.Options.MaxAge = -1
+	if err := sess.Save(c.Request(), c.Response()); err != nil {
+		log.Println(err)
+	}
+
+	return c.Redirect(http.StatusSeeOther, "/")
+}
