@@ -1,0 +1,71 @@
+{{define "title"}}
+  Login
+{{end}}
+
+{{define "content"}}
+<div class="container">
+
+  <!-- Outer Row -->
+  <div class="row justify-content-center align-items-center vh-100">
+
+    <div class="col-xl-10 col-lg-12 col-md-9">
+
+      <div class="card o-hidden border-0 shadow-lg">
+        <div class="card-body p-0">
+          <!-- Nested Row within Card Body -->
+          <div class="row">
+            <div class="col-lg-6 d-none d-lg-block">
+              <img
+                src="/static/image/shop.jpg"
+                alt=""
+                width="100%"
+                height="100%"
+                style="object-fit: cover;">
+              <span style="position: absolute; left: 25px; bottom: 10px; color: white; font-size: 14px;">
+                Image by <a href="https://unsplash.com/photos/P3pI6xzovu0">Clark Street Mercantile</a>
+                on <a href="https://unsplash.com">Unsplash</a>
+              </span>
+            </div>
+            <div class="col-lg-6">
+              <div class="p-5">
+                <div class="text-center">
+                  <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                </div>
+                <form class="user" action="/auth/login" method="POST">
+                  <div class="form-group">
+                    <input type="email" class="form-control form-control-user" name="email" placeholder="Enter Email Address..." value="staff@mail.com">
+                  </div>
+                  <div class="form-group">
+                    <input type="password" class="form-control form-control-user" name="password" placeholder="Password" value="sst_it_is_secret">
+                  </div>
+                  {{if .isError}}
+                    <div class="alert alert-warning text-center">{{.Message}}</div>
+                  {{end}}
+                  <button type="submit" class="btn btn-primary btn-user btn-block">Login</button>
+                  <hr>
+                </form>
+                <!-- TODO: add this  -->
+                <!-- <div class="text-center">
+                  <a class="small" href="forgot-password.html">Forgot Password?</a>
+                </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{{end}}
+
+{{define "script"}}
+{{end}}
+
+{{define "style"}}
+{{end}}
+
+{{define "login"}}
+  {{template "guest" .}}
+{{end}}

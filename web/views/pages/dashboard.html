@@ -150,14 +150,13 @@
 
     function getLastMonthEarning() {
         $.ajax({
-            url: "/orders/latest-earning?type=month",
+            url: "/orders/latest-income?type=month",
             method: "GET",
             beforeSend: function() {
                 $('#earnings-monthly').html(loaderElem)
             },
             success: function(res) {
-                responsePayload = JSON.parse(res)
-                $('#earnings-monthly').html("Rp. " + responsePayload.data)
+                $('#earnings-monthly').html("Rp. " + res.data)
             },
             error: function(res) {
                 console.log(res)
@@ -168,14 +167,13 @@
 
     function getLastDayEarning() {
         $.ajax({
-            url: "/orders/latest-earning?type=day",
+            url: "/orders/latest-income?type=day",
             method: "GET",
             beforeSend: function() {
                 $('#earnings-today').html(loaderElem)
             },
             success: function(res) {
-                responsePayload = JSON.parse(res)
-                $('#earnings-today').html("Rp. " + responsePayload.data)
+                $('#earnings-today').html("Rp. " + res.data)
             },
             error: function(res) {
                 console.log(res)
@@ -192,8 +190,7 @@
                 $('#total-orders').html(loaderElem)
             },
             success: function(res) {
-                responsePayload = JSON.parse(res)
-                $('#total-orders').html(responsePayload.data)
+                $('#total-orders').html(res.data)
             },
             error: function(res) {
                 console.log(res)
@@ -207,15 +204,14 @@
             url: "/orders/total?type=day",
             method: "GET",
             beforeSend: function() {
-                $('#today-orders').html(loaderElem)
+              $('#today-orders').html(loaderElem)
             },
             success: function(res) {
-                responsePayload = JSON.parse(res)
-                $('#today-orders').html(responsePayload.data)
+              $('#today-orders').html(res.data)
             },
             error: function(res) {
-                console.log(res)
-                $('#today-orders').html("Failed to load data")
+              console.log(res)
+              $('#today-orders').html("Failed to load data")
             }
         })
     }
@@ -229,8 +225,12 @@
             },
             success: function(res) {
                 $('#bestseller-content').html("")
-                responsePayload = JSON.parse(res);
-                let products = responsePayload.data;
+                let products = res.data;
+                if (products.length < 1) {
+                  $('#bestseller-content').html("No sales yet");
+                  return;
+                }
+
                 products.forEach((product, index) => {
                     let temp = $("#bestseller-template").clone();
                     temp.contents().find("#name").html(product.name);
@@ -247,11 +247,10 @@
 
     function getAnnualEarnings() {
         $.ajax({
-            url: "/orders/annual-earning",
+            url: "/orders/annual-income",
             method: "GET",
             success: function(res) {
-                responsePayload = JSON.parse(res);
-                let earnings = responsePayload.data;
+                let earnings = res.data;
                 let labels = []
                 let data = []
                 earnings.forEach(earning => {
@@ -299,4 +298,8 @@
         getAnnualEarnings();
     });
 </script>
+{{end}}
+
+{{define "dashboard"}}
+  {{template "admin" .}}
 {{end}}
