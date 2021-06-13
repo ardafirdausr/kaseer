@@ -14,29 +14,39 @@ type CustomValidator struct {
 }
 
 func (v *CustomValidator) Validate(i interface{}) error {
+	// paramReflectValue := reflect.ValueOf(i)
+	// switch paramReflectValue.Kind() {
+	// case reflect.Map:
+	// 	i, ok = i.(echo.Map)
+	// 	if !ok {
+
+	// 	}
+	// 	v.validator.ValidateMap(i["data"], i["rules"])
+	// case reflect.Struct:
+	// 	v.validator.Struct(i)
+	// }
+
 	err := v.validator.Struct(i)
 	if _, ok := err.(*validator.InvalidValidationError); ok {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	} else if validationErrors, ok := err.(validator.ValidationErrors); ok {
-		verr := &entity.ErrValidation{
+		verr := entity.ErrValidation{
 			Message: "Invalid format data",
-			Err:     err,
+			Errors:  map[string]string{},
 		}
 		for _, validationError := range validationErrors {
-			errorField := map[string]string{
-				"field": validationError.Field(),
-			}
+			fieldName := validationError.Field()
+			paramValue := validationError.Param()
+			errMessage := ""
 			switch validationError.Tag() {
 			case "required":
-				errorField["message"] = fmt.Sprintf("%s is required", validationError.Field())
-			case "min":
-				errorField["message"] = fmt.Sprintf("Min value of %s is %s",
-					validationError.Field(), validationError.Param())
-			case "max":
-				errorField["message"] = fmt.Sprintf("Max value of %s is %s",
-					validationError.Field(), validationError.Param())
+				errMessage = fmt.Sprintf("%s is required", fieldName)
+			case "gt":
+				errMessage = fmt.Sprintf("Value of %s must be greater than %s", fieldName, paramValue)
+			case "gte":
+				errMessage = fmt.Sprintf("Value of %s must be greater or equal to %s", fieldName, paramValue)
 			}
-			verr.Errors = append(verr.Errors, errorField)
+			verr.Errors[fieldName] = errMessage
 		}
 		return verr
 	}

@@ -26,26 +26,22 @@ func (che CustomHTTPErrorHandler) Handler(err error, c echo.Context) {
 
 	if ev, ok := err.(*entity.ErrValidation); ok {
 		he.Code = http.StatusBadRequest
-		if ev.Message == "" {
-			he.Message = http.StatusText(http.StatusBadRequest)
-		} else {
-			he.Message = ev.Message
-		}
+		he.Message = ev.Message
 	} else if ent, ok := err.(*entity.ErrNotFound); ok {
 		he.Code = http.StatusNotFound
-		if ent.Message == "" {
-			he.Message = http.StatusText(http.StatusNotFound)
-		} else {
-			he.Message = ent.Message
-		}
+		he.Message = ent.Message
+	}
+
+	if he.Message == "" {
+		he.Message = http.StatusText(he.Code)
 	}
 
 	if hub := sentryecho.GetHubFromContext(c); hub != nil {
-		hub.WithScope(func(scope *sentry.Scope) {
-			hub.CaptureException(err)
-		})
-		// if he.Code == http.StatusInternalServerError {
-		// }
+		if he.Code == http.StatusInternalServerError {
+			hub.WithScope(func(scope *sentry.Scope) {
+				hub.CaptureException(err)
+			})
+		}
 	}
 
 	if !c.Response().Committed {
@@ -58,12 +54,20 @@ func (che CustomHTTPErrorHandler) Handler(err error, c echo.Context) {
 			case http.StatusNotFound:
 				c.Render(http.StatusNotFound, "404", nil)
 			case http.StatusInternalServerError:
-				c.Render(http.StatusNotFound, "500", nil)
+				var data echo.Map
+				if che.debug {
+					data = echo.Map{
+						"Success": false,
+						"Message": err.Error(),
+					}
+				}
+				c.Render(http.StatusNotFound, "500", data)
 			}
 		}
 
 		if err != nil {
-			log.Println(err)
+			log.Println(he.Message)
+			log.Println(he.Error())
 			// che.logger.Error(err)
 		}
 	}

@@ -52,6 +52,14 @@ func (pu ProductUsecase) GetBestSellerProducts() ([]*entity.ProductSale, error) 
 }
 
 func (pu ProductUsecase) CreateProduct(param entity.CreateProductParam) (*entity.Product, error) {
+	exProduct, _ := pu.productRepository.GetProductByCode(param.Code)
+	if exProduct != nil {
+		return nil, entity.ErrItemAlreadyExists{
+			Message: "Product already exists",
+			Err:     nil,
+		}
+	}
+
 	product, err := pu.productRepository.Create(param)
 	if err != nil {
 		log.Println(err.Error())

@@ -13,7 +13,7 @@ import (
 func Start(app *app.App) {
 	web := server.New()
 
-	web.Static("/static/", "web/assets")
+	web.Static("/static", "web/assets")
 
 	userController := controller.NewUserController(app.Usecases)
 
@@ -46,21 +46,26 @@ func Start(app *app.App) {
 	// orderRouter.HandleFunc("", ShowAllOrders).Methods("GET")
 	// orderRouter.HandleFunc("", CreateOrder).Methods("POST")
 
+	// ProductRouter router
 	productController := controller.NewProductController(app.Usecases)
 	productRouter := authenticatedGroup.Group("/products")
+	productRouter.GET("/create", productController.ShowCreateProductForm)
+	productRouter.GET("/:productId/edit", productController.ShowEditProductForm)
+	productRouter.POST("/:productId/update", productController.UpdateProduct)
+	productRouter.POST("/:productId/delete", productController.DeleteProduct)
 	productRouter.GET("/bestseller", productController.GetBestSellerProductsData)
-	// productRouter.HandleFunc("/create", ShowCreateProductForm).Methods("GET")
-	// productRouter.HandleFunc("/{productId:[0-9]+}/edit", ShowEditProductForm).Methods("GET")
-	// productRouter.HandleFunc("/{productId:[0-9]+}/update", UpdateProduct).Methods("POST")
-	// productRouter.HandleFunc("/{productId:[0-9]+}/delete", DeleteProduct).Methods("POST")
-	// productRouter.HandleFunc("", ShowAllProducts).Methods("GET")
-	// productRouter.HandleFunc("", CreateProduct).Methods("POST")
+	productRouter.GET("", productController.ShowAllProducts)
+	productRouter.POST("", productController.CreateProduct, middleware.Dump())
 
 	dashboardController := controller.NewDashboardController(app.Usecases)
 	authenticatedGroup.GET("/dashboard", dashboardController.ShowDashboard)
 
 	// router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 	// 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	// })
+
+	// web.GET("/dashboard", func(c echo.Context) error {
+	// 	return c.String(http.StatusOK, "hello")
 	// })
 
 	web.GET("/", func(c echo.Context) error {

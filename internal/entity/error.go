@@ -1,12 +1,20 @@
 package entity
 
+import "net/http"
+
 type ErrNotFound struct {
 	Message string
 	Err     error
 }
 
 func (ent ErrNotFound) Error() string {
-	return ent.Err.Error()
+	if ent.Err != nil {
+		return ent.Err.Error()
+	} else if ent.Message != "" {
+		return ent.Message
+	} else {
+		return http.StatusText(http.StatusBadGateway)
+	}
 }
 
 type ErrItemAlreadyExists struct {
@@ -15,27 +23,24 @@ type ErrItemAlreadyExists struct {
 }
 
 func (eie ErrItemAlreadyExists) Error() string {
-	return eie.Err.Error()
+	if eie.Err != nil {
+		return eie.Err.Error()
+	} else if eie.Message != "" {
+		return eie.Message
+	} else {
+		return http.StatusText(http.StatusBadRequest)
+	}
 }
 
 type ErrValidation struct {
 	Message string
-	Errors  []map[string]string
-	Err     error
-}
-
-func NewErrValidation(message string, errors []map[string]string, err error) *ErrValidation {
-	return &ErrValidation{
-		Message: message,
-		Errors:  errors,
-		Err:     err,
-	}
+	Errors  map[string]string
 }
 
 func (ve ErrValidation) Error() string {
-	if ve.Err != nil {
-		return ve.Err.Error()
+	if ve.Message != "" {
+		return ve.Message
+	} else {
+		return http.StatusText(http.StatusBadRequest)
 	}
-
-	return ve.Message
 }

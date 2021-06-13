@@ -33,12 +33,15 @@ func New() *echo.Echo {
 	e.Validator = validator
 
 	SentryDsn := os.Getenv("SENTRY_DSN")
-	sentryMiddleware := middleware.Sentry(SentryDsn)
+	sentryMiddleware := middleware.Sentry(SentryDsn, isDebuging)
 	e.Use(sentryMiddleware)
 
 	errorHandler := &CustomHTTPErrorHandler{debug: isDebuging, logger: e.Logger}
 	// errorHandler := &CustomHTTPErrorHandler{debug: isDebuging}
 	e.HTTPErrorHandler = errorHandler.Handler
+
+	preMiddlewares := middleware.PreMiddlewares()
+	e.Pre(preMiddlewares...)
 
 	sessionKey := os.Getenv("SESSION_KEY")
 	store := sessions.NewCookieStore([]byte(sessionKey))

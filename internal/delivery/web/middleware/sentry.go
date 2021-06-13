@@ -8,8 +8,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Sentry(Dsn string) echo.MiddlewareFunc {
-	err := sentry.Init(sentry.ClientOptions{Dsn: Dsn})
+func Sentry(Dsn string, debug bool) echo.MiddlewareFunc {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:   Dsn,
+		Debug: debug,
+	})
 	if err != nil {
 		fmt.Printf("Sentry initialization failed: %v\n", err)
 	}

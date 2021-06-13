@@ -100,11 +100,17 @@ func (pr ProductRepository) GetProductByCode(code string) (*entity.Product, erro
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
+	if err == sql.ErrNoRows {
+		log.Println(err.Error())
+		err = entity.ErrNotFound{
+			Message: "Product not found",
+			Err:     err,
 		}
+		return nil, err
+	}
 
+	if err != nil {
+		log.Println(err.Error())
 		return nil, err
 	}
 
@@ -124,11 +130,18 @@ func (pr ProductRepository) GetProductByID(ID int64) (*entity.Product, error) {
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
 
+	if err == sql.ErrNoRows {
+		log.Println(err.Error())
+		err = entity.ErrNotFound{
+			Message: "Product not found",
+			Err:     err,
+		}
+		return nil, err
+	}
+
+	if err != nil {
+		log.Println(err.Error())
 		return nil, err
 	}
 
@@ -140,11 +153,13 @@ func (pr ProductRepository) Create(param entity.CreateProductParam) (*entity.Pro
 		"INSERT INTO products(code, name, stock, price) VALUES(?, ?, ?, ?)",
 		param.Code, param.Name, param.Stock, param.Price)
 	if err != nil {
+		log.Println(err.Error())
 		return nil, err
 	}
 
 	ID, err := res.LastInsertId()
 	if err != nil {
+		log.Println(err.Error())
 		return nil, err
 	}
 
@@ -152,7 +167,7 @@ func (pr ProductRepository) Create(param entity.CreateProductParam) (*entity.Pro
 	err = row.Err()
 	if err != nil {
 		log.Println(err.Error())
-		err = &entity.ErrNotFound{Message: "Product not found", Err: err}
+		err = entity.ErrNotFound{Message: "Product not found", Err: err}
 		return nil, err
 	}
 

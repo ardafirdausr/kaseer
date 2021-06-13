@@ -38,8 +38,8 @@
                   <div class="form-group">
                     <input type="password" class="form-control form-control-user" name="password" placeholder="Password" value="sst_it_is_secret">
                   </div>
-                  {{if .isError}}
-                    <div class="alert alert-warning text-center">{{.Message}}</div>
+                  {{if .Error}}
+                    <div class="alert alert-warning text-center">{{.Error.Message}}</div>
                   {{end}}
                   <button type="submit" class="btn btn-primary btn-user btn-block">Login</button>
                   <hr>

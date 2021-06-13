@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/gob"
-
 	"github.com/gorilla/sessions"
 )
 
@@ -14,8 +12,5 @@ func NewSessionStore(sessionKey string) *sessions.CookieStore {
 		MaxAge:   60 * 60 * 2,
 		HttpOnly: true,
 	}
-
-	gob.Register(&User{})
-
 	return sessionStore
 }

@@ -20,15 +20,15 @@ type ProductSale struct {
 }
 
 type CreateProductParam struct {
-	Code  string `db:"code" validate:"required"`
-	Name  string `db:"name" validate:"required"`
-	Price int    `db:"price" validate:"required,numeric,gt=0"`
-	Stock int    `db:"stock" validate:"required,numeric,gte=0"`
+	Code  string `db:"code" form:"code" validate:"required"`
+	Name  string `db:"name" form:"name" validate:"required"`
+	Price int    `db:"price" form:"price" validate:"required,numeric,gt=0"`
+	Stock int    `db:"stock" form:"stock" validate:"required,numeric,gte=0"`
 }
 
 type UpdateProductParam struct {
-	Code  string `db:"code"`
-	Name  string `db:"name"`
-	Price int    `db:"price" validate:"numeric,gt=0"`
-	Stock int    `db:"stock" validate:"numeric,gte=0"`
+	Code  string `db:"code" form:"code"`
+	Name  string `db:"name" form:"name"`
+	Price int    `db:"price" form:"price" validate:"numeric,gt=0"`
+	Stock int    `db:"stock" form:"stock" validate:"numeric,gte=0"`
 }

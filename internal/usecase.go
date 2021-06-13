@@ -2,10 +2,6 @@ package internal
 
 import "github.com/ardafirdausr/go-pos/internal/entity"
 
-type AuthUsecase interface {
-	ValidateUser() (*entity.User, error)
-}
-
 type UserUsecase interface {
 	GetUserByID(ID int64) (*entity.User, error)
 	GetUserByCredential(email string, password string) (*entity.User, error)

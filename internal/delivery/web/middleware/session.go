@@ -11,6 +11,7 @@ import (
 
 func Session(store sessions.Store) echo.MiddlewareFunc {
 	gob.Register(&entity.User{})
+	gob.Register(&entity.ErrValidation{})
 	cfg := session.Config{Store: store}
 	return session.MiddlewareWithConfig(cfg)
 }

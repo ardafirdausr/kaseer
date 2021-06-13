@@ -11,7 +11,6 @@
     <!-- Content Row -->
 
     <div class="row">
-
         <!-- Area Chart -->
         <div class="col-12">
             <div class="card shadow mb-4">
@@ -22,6 +21,12 @@
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
+                    {{if .Error}}
+                      <div class="alert alert-danger">{{.Error.Message}}</div>
+                    {{end}}
+                    {{if .Success}}
+                      <div class="alert alert-success">{{.Success.Message}}</div>
+                    {{end}}
                     <table class="table table-stripped" id="product-table">
                         <thead>
                             <th>Code</th>
@@ -31,7 +36,7 @@
                             <th>Action</th>
                         </thead>
                         <tbody>
-                            {{range .Products}}
+                            {{range .Data.Products}}
                                 <tr>
                                     <td class="font-weight-bold">{{.Code}}</td>
                                     <td class="font-weight-bold">{{.Name}}</td>
@@ -109,4 +114,8 @@
         })
     });
 </script>
+{{end}}
+
+{{define "products"}}
+  {{template "admin" .}}
 {{end}}

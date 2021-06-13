@@ -28,6 +28,14 @@ func (ur UserRepository) GetUserByID(ID int64) (*entity.User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+	if err == sql.ErrNoRows {
+		err := entity.ErrNotFound{
+			Message: "User not found",
+			Err:     err,
+		}
+		return nil, err
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -37,14 +45,6 @@ func (ur UserRepository) GetUserByID(ID int64) (*entity.User, error) {
 
 func (ur UserRepository) GetUserByEmail(email string) (*entity.User, error) {
 	row := ur.DB.QueryRow("SELECT * FROM users WHERE email = ?", email)
-	if row.Err() == sql.ErrNoRows {
-		err := entity.ErrNotFound{
-			Message: "User not found",
-			Err:     row.Err(),
-		}
-		return nil, err
-	}
-
 	var user entity.User
 	var err = row.Scan(
 		&user.ID,
@@ -55,6 +55,15 @@ func (ur UserRepository) GetUserByEmail(email string) (*entity.User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+
+	if err == sql.ErrNoRows {
+		err := entity.ErrNotFound{
+			Message: "User not found",
+			Err:     err,
+		}
+		return nil, err
+	}
+
 	if err != nil {
 		return nil, err
 	}
