@@ -43,10 +43,18 @@ func renderPage(c echo.Context, page string, title string, additionalData echo.M
 	return c.Render(http.StatusOK, page, data)
 }
 
-func json(c echo.Context, code int, message string, data interface{}) error {
+func responseJson(c echo.Context, code int, message string, data interface{}) error {
 	payload := map[string]interface{}{
 		"message": message,
 		"data":    data,
+	}
+	return c.JSON(code, payload)
+}
+
+func responseErrorJson(c echo.Context, code int, message string, errs interface{}) error {
+	payload := map[string]interface{}{
+		"message": message,
+		"errors":  errs,
 	}
 	return c.JSON(code, payload)
 }

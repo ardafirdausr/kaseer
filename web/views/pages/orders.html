@@ -22,6 +22,12 @@
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
+                    {{if .Error}}
+                      <div class="alert alert-danger">{{.Error.Message}}</div>
+                    {{end}}
+                    {{if .Success}}
+                      <div class="alert alert-success">{{.Success.Message}}</div>
+                    {{end}}
                     <table class="table table-stripped" id="order-table">
                         <thead>
                             <th>Date</th>
@@ -29,9 +35,9 @@
                             <th>Action</th>
                         </thead>
                         <tbody>
-                            {{range $i, $element := .Orders}}
+                            {{range $i, $element := .Data.Orders}}
                                 <tr>
-                                    <td class="font-weight-bold">{{.FormatDate}}</td>
+                                    <td class="font-weight-bold">{{.CreatedAt.Format "2006-01-02 15:04:05 WIB"}}</td>
                                     <td>Rp. {{.Total}}</td>
                                     <td>
                                         <button class="btn btn-icon btn-sm btn-primary" onclick='showDetail("{{.ID}}")'>
@@ -161,8 +167,12 @@
 
     $(document).ready( function () {
         $('#order-table').DataTable({
-            order: [[0, 'asc']]
+            order: [[0, 'desc']]
         })
     });
 </script>
+{{end}}
+
+{{define "orders"}}
+  {{template "admin" .}}
 {{end}}

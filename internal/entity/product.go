@@ -13,17 +13,17 @@ type Product struct {
 }
 
 type ProductSale struct {
-	ID   int64
-	Code string
-	Name string
-	Sale int
+	ID   int64  `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
+	Sale int    `json:"sale"`
 }
 
 type CreateProductParam struct {
-	Code  string `db:"code" form:"code" validate:"required"`
-	Name  string `db:"name" form:"name" validate:"required"`
-	Price int    `db:"price" form:"price" validate:"required,numeric,gt=0"`
-	Stock int    `db:"stock" form:"stock" validate:"required,numeric,gte=0"`
+	Code  string `db:"code" form:"code" json:"code" validate:"required"`
+	Name  string `db:"name" form:"name" json:"name" validate:"required"`
+	Price int    `db:"price" form:"price" json:"price" validate:"required,numeric,gt=0"`
+	Stock int    `db:"stock" form:"stock" json:"stock" validate:"required,numeric,gte=0"`
 }
 
 type UpdateProductParam struct {

@@ -5,20 +5,39 @@ import (
 
 	"github.com/ardafirdausr/go-pos/internal"
 	"github.com/ardafirdausr/go-pos/internal/app"
+	"github.com/ardafirdausr/go-pos/internal/entity"
 	"github.com/labstack/echo/v4"
 )
 
 type OrderController struct {
-	orderUc internal.OrderUsecase
+	orderUc   internal.OrderUsecase
+	productUc internal.ProductUsecase
 }
 
 func NewOrderController(ucs *app.Usecases) *OrderController {
 	orderUc := ucs.OrderUsecase
-	return &OrderController{orderUc}
+	productUc := ucs.ProductUsecase
+	return &OrderController{orderUc, productUc}
+}
+
+func (oc OrderController) ShowAllOrders(c echo.Context) error {
+	orders, err := oc.orderUc.GetAllOrders()
+	if err != nil {
+		return err
+	}
+
+	data := echo.Map{"Orders": orders}
+	return renderPage(c, "orders", "All Orders", data)
 }
 
 func (oc OrderController) ShowCreateOrderForm(c echo.Context) error {
-	return echo.ErrNotFound
+	products, err := oc.productUc.GetAllProducts()
+	if err != nil {
+		return err
+	}
+
+	data := echo.Map{"Products": products}
+	return renderPage(c, "order_create", "Create New Order", data)
 }
 
 func (oc OrderController) GetTotalOrdersData(c echo.Context) error {
@@ -41,7 +60,7 @@ func (oc OrderController) GetTotalOrdersData(c echo.Context) error {
 		totalOrderCount = totalOrder
 	}
 
-	return json(c, http.StatusOK, "Success", totalOrderCount)
+	return responseJson(c, http.StatusOK, "Success", totalOrderCount)
 }
 
 func (oc OrderController) GetLatestIncomeData(c echo.Context) error {
@@ -63,7 +82,7 @@ func (oc OrderController) GetLatestIncomeData(c echo.Context) error {
 		totalIncome = monthlyIncome
 	}
 
-	return json(c, http.StatusOK, "Success", totalIncome)
+	return responseJson(c, http.StatusOK, "Success", totalIncome)
 }
 
 func (oc OrderController) GetAnnualIncomeData(c echo.Context) error {
@@ -72,5 +91,32 @@ func (oc OrderController) GetAnnualIncomeData(c echo.Context) error {
 		return err
 	}
 
-	return json(c, http.StatusOK, "Success", annualIncomes)
+	return responseJson(c, http.StatusOK, "Success", annualIncomes)
+}
+
+func (oc OrderController) CreateOrder(c echo.Context) error {
+	var orderParam entity.CreateOrderParam
+	if err := c.Bind(&orderParam); err != nil {
+		return responseJson(c, http.StatusInternalServerError, "Failed processing data", nil)
+	}
+
+	err := c.Validate(&orderParam)
+	if ev, ok := err.(entity.ErrValidation); ok {
+		return responseJson(c, http.StatusBadRequest, "Data invalid", ev.Errors)
+	}
+
+	if err != nil {
+		return responseJson(c, http.StatusBadRequest, "Data invalid", nil)
+	}
+
+	order, err := oc.orderUc.Create(orderParam)
+	if ev, ok := err.(entity.ErrValidation); ok {
+		return responseErrorJson(c, http.StatusBadRequest, ev.Message, ev.Errors)
+	}
+
+	if err != nil {
+		return responseJson(c, http.StatusInternalServerError, "Failed creating data", nil)
+	}
+
+	return responseJson(c, http.StatusCreated, "Success creating order", order)
 }

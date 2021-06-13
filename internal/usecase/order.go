@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/ardafirdausr/go-pos/internal"
@@ -8,11 +9,12 @@ import (
 )
 
 type OrderUsecase struct {
-	orderRepository internal.OrderRepository
+	orderRepository   internal.OrderRepository
+	productRepository internal.ProductRepository
 }
 
-func NewOrderUsecase(orderRepository internal.OrderRepository) *OrderUsecase {
-	return &OrderUsecase{orderRepository: orderRepository}
+func NewOrderUsecase(orderRepository internal.OrderRepository, productRepository internal.ProductRepository) *OrderUsecase {
+	return &OrderUsecase{orderRepository, productRepository}
 }
 
 func (ou OrderUsecase) GetAllOrders() ([]*entity.Order, error) {
@@ -78,6 +80,39 @@ func (ou OrderUsecase) GetLastMonthIncome() (int, error) {
 	return res, err
 }
 
-func (ou OrderUsecase) Create(entity.CreateOrderParam) ([]*entity.Order, error) {
-	return nil, nil
+func (ou OrderUsecase) Create(param entity.CreateOrderParam) (*entity.Order, error) {
+	// check available quantity
+	orderQuantity := map[int64]int{}
+	productIDs := make([]int64, 0)
+
+	for _, item := range param.Items {
+		orderQuantity[item.ProductId] = item.Quantity
+		productIDs = append(productIDs, item.ProductId)
+	}
+
+	products, err := ou.productRepository.GetProductsByIDs(productIDs...)
+	if err != nil {
+		return nil, err
+	}
+
+	ev := entity.ErrValidation{
+		Message: "Insufficient product quantity",
+		Errors:  map[string]string{},
+	}
+	for _, product := range products {
+		if product.Stock-orderQuantity[product.ID] < 0 {
+			ev.Errors[product.Name] = fmt.Sprintf("%s remaining quantity: %d", product.Name, product.Stock)
+		}
+	}
+
+	if len(ev.Errors) > 0 {
+		return nil, ev
+	}
+
+	order, err := ou.orderRepository.Create(param)
+	if err != nil {
+		return nil, err
+	}
+
+	return order, nil
 }

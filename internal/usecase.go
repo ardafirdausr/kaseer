@@ -27,5 +27,5 @@ type OrderUsecase interface {
 	GetTotalOrderCount() (int, error)
 	GetLastDayIncome() (int, error)
 	GetLastMonthIncome() (int, error)
-	Create(entity.CreateOrderParam) ([]*entity.Order, error)
+	Create(entity.CreateOrderParam) (*entity.Order, error)
 }

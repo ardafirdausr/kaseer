@@ -2,7 +2,11 @@ package mysql
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"log"
+	"strconv"
+	"strings"
 
 	"github.com/ardafirdausr/go-pos/internal/entity"
 )
@@ -146,6 +150,54 @@ func (pr ProductRepository) GetProductByID(ID int64) (*entity.Product, error) {
 	}
 
 	return &product, nil
+}
+
+func (pr ProductRepository) GetProductsByIDs(IDs ...int64) ([]*entity.Product, error) {
+	if len(IDs) < 1 {
+		err := errors.New("ID is required for getting product")
+		return nil, err
+	}
+
+	IDsString := []string{}
+	for _, ID := range IDs {
+		IDString := strconv.FormatInt(ID, 10)
+		IDsString = append(IDsString, IDString)
+	}
+
+	conditionParam := strings.Join(IDsString, ", ")
+	query := fmt.Sprintf("SELECT * FROM products WHERE id IN (%s)", conditionParam)
+	rows, err := pr.DB.Query(query)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	products := []*entity.Product{}
+	for rows.Next() {
+		var product entity.Product
+		var err = rows.Scan(
+			&product.ID,
+			&product.Code,
+			&product.Name,
+			&product.Price,
+			&product.Stock,
+			&product.CreatedAt,
+			&product.UpdatedAt,
+		)
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
+
+		products = append(products, &product)
+	}
+	if err = rows.Err(); err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	return products, nil
 }
 
 func (pr ProductRepository) Create(param entity.CreateProductParam) (*entity.Product, error) {

@@ -26,48 +26,42 @@ func Start(app *app.App) {
 
 	authenticatedGroup := web.Group("", middleware.SessionAuth())
 
-	// profileRouter := router.PathPrefix("/profile").Subrouter()
-	// profileRouter.Use(AuthMiddleware)
-	// profileRouter.HandleFunc("", ShowUserProfile).Methods("GET")
-	// profileRouter.HandleFunc("/edit/password", showEditUserPasswordForm).Methods("GET")
-	// profileRouter.HandleFunc("/edit", showEditUserProfileForm).Methods("GET")
-	// profileRouter.HandleFunc("", UpdateUserProfile).Methods("POST")
-	// profileRouter.HandleFunc("/password", UpdateUserPassword).Methods("POST")
+	// Profile Routes
+	// profileRouter := authenticatedGroup.Group("/profile")
+	// profileRouter.GET("", ShowUserProfile)
+	// profileRouter.GET("/edit/password", showEditUserPasswordForm)
+	// profileRouter.GET("/edit", showEditUserProfileForm)
+	// profileRouter.POST("", UpdateUserProfile)
+	// profileRouter.POST("/password", UpdateUserPassword)
 
-	// orderRouter := router.PathPrefix("/orders").Subrouter()
-	// orderRouter.Use(AuthMiddleware)
+	// Order Routes
 	orderController := controller.NewOrderController(app.Usecases)
 	orderRouter := authenticatedGroup.Group("/orders")
-	// orderRouter.GET("/create", orderController.ShowCreateOrderForm)
+	orderRouter.GET("/create", orderController.ShowCreateOrderForm)
 	orderRouter.GET("/total", orderController.GetTotalOrdersData)
 	orderRouter.GET("/latest-income", orderController.GetLatestIncomeData)
 	orderRouter.GET("/annual-income", orderController.GetAnnualIncomeData)
-	// orderRouter.HandleFunc("/{orderId:[0-9]+}", GetOrderDetailData).Methods("GET")
-	// orderRouter.HandleFunc("", ShowAllOrders).Methods("GET")
-	// orderRouter.HandleFunc("", CreateOrder).Methods("POST")
 
-	// ProductRouter router
+	// orderRouter.GET("/{orderId:[0-9]+}", GetOrderDetailData)
+	orderRouter.GET("", orderController.ShowAllOrders)
+	orderRouter.POST("", orderController.CreateOrder)
+
+	// Product Routes
 	productController := controller.NewProductController(app.Usecases)
 	productRouter := authenticatedGroup.Group("/products")
 	productRouter.GET("/create", productController.ShowCreateProductForm)
+	productRouter.GET("/bestseller", productController.GetBestSellerProductsData)
 	productRouter.GET("/:productId/edit", productController.ShowEditProductForm)
+	productRouter.GET("", productController.ShowAllProducts)
 	productRouter.POST("/:productId/update", productController.UpdateProduct)
 	productRouter.POST("/:productId/delete", productController.DeleteProduct)
-	productRouter.GET("/bestseller", productController.GetBestSellerProductsData)
-	productRouter.GET("", productController.ShowAllProducts)
-	productRouter.POST("", productController.CreateProduct, middleware.Dump())
+	productRouter.POST("", productController.CreateProduct)
 
+	// Dashboard route
 	dashboardController := controller.NewDashboardController(app.Usecases)
 	authenticatedGroup.GET("/dashboard", dashboardController.ShowDashboard)
 
-	// router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	// 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-	// })
-
-	// web.GET("/dashboard", func(c echo.Context) error {
-	// 	return c.String(http.StatusOK, "hello")
-	// })
-
+	// Redirect Route
 	web.GET("/", func(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/dashboard")
 	})

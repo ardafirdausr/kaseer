@@ -14,7 +14,7 @@ type Usecases struct {
 func newUsecases(repos *repositories) *Usecases {
 	userUsecase := usecase.NewUserUsecase(repos.UserRepository)
 	productUsecase := usecase.NewProductUsecase(repos.ProductRepository)
-	orderUsecase := usecase.NewOrderUsecase(repos.OrderRepository)
+	orderUsecase := usecase.NewOrderUsecase(repos.OrderRepository, repos.ProductRepository)
 	return &Usecases{
 		UserUsecase:    userUsecase,
 		ProductUsecase: productUsecase,

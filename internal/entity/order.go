@@ -26,7 +26,7 @@ type AnnualIncome struct {
 }
 
 type CreateOrderParam struct {
-	Total int                    `db:"total" json:"total"`
+	Total int                    `db:"total" json:"total,omitempty"`
 	Items []CreateOrderItemParam `json:"order_items" validate:"required"`
 }
 

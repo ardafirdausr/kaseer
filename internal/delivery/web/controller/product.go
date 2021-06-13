@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -37,7 +38,7 @@ func (pc ProductController) GetBestSellerProductsData(c echo.Context) error {
 		return err
 	}
 
-	return json(c, http.StatusOK, "Success", products)
+	return responseJson(c, http.StatusOK, "Success", products)
 }
 
 func (pc ProductController) ShowCreateProductForm(c echo.Context) error {
@@ -72,7 +73,7 @@ func (pc ProductController) CreateProduct(c echo.Context) error {
 	if ev, ok := err.(entity.ErrValidation); ok {
 		sess.AddFlash(ev, "error_validation")
 		if err := sess.Save(c.Request(), c.Response()); err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 		return c.Redirect(http.StatusSeeOther, "/products/create")
 	}

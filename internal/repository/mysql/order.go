@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/ardafirdausr/go-pos/internal/entity"
@@ -182,8 +183,10 @@ func (or OrderRepository) Create(param entity.CreateOrderParam) (*entity.Order, 
 	tx, err := or.DB.BeginTx(ctx, nil)
 	if err != nil {
 		log.Println(err.Error())
+		return nil, err
 	}
 
+	// create orders
 	ors, err := tx.ExecContext(ctx, "INSERT INTO orders(total) VALUES(?)", param.Total)
 	if err != nil {
 		tx.Rollback()
@@ -198,16 +201,37 @@ func (or OrderRepository) Create(param entity.CreateOrderParam) (*entity.Order, 
 		return nil, err
 	}
 
-	params := []string{}
-	vals := []interface{}{}
+	// create order items
+	createOrderParams := []string{}
+	createOrderVals := []interface{}{}
 	for _, item := range param.Items {
-		params = append(params, "(?, ?, ?, ?)")
-		vals = append(vals, orderId, item.ProductId, item.Quantity, item.Subtotal)
+		createOrderParams = append(createOrderParams, "(?, ?, ?, ?)")
+		createOrderVals = append(createOrderVals, orderId, item.ProductId, item.Quantity, item.Subtotal)
 		item.OrderId = orderId
 	}
 
-	query := fmt.Sprintf("INSERT INTO order_items(order_id, product_id, quantity, subtotal) VALUES %s", strings.Join(params, ", "))
-	_, err = tx.ExecContext(ctx, query, vals...)
+	createOrderParamQuery := strings.Join(createOrderParams, ", ")
+	query := fmt.Sprintf("INSERT INTO order_items(order_id, product_id, quantity, subtotal) VALUES %s", createOrderParamQuery)
+	_, err = tx.ExecContext(ctx, query, createOrderVals...)
+	if err != nil {
+		tx.Rollback()
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	// Decrement stocks
+	decrementStockParams := []string{}
+	decrementProductIDs := []string{}
+	for _, item := range param.Items {
+		decrementProductIDs = append(decrementProductIDs, strconv.FormatInt(item.ProductId, 10))
+		param := fmt.Sprintf("stock = IF(id=%d, stock-%d, stock)", item.ProductId, item.Quantity)
+		decrementStockParams = append(decrementStockParams, param)
+	}
+
+	decrementStockParamQuery := strings.Join(decrementStockParams, ", ")
+	decrementProductIDsQuery := strings.Join(decrementProductIDs, ", ")
+	query = fmt.Sprintf("UPDATE products SET %s WHERE id IN (%s)", decrementStockParamQuery, decrementProductIDsQuery)
+	_, err = tx.ExecContext(ctx, query)
 	if err != nil {
 		tx.Rollback()
 		log.Println(err.Error())

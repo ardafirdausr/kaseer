@@ -42,11 +42,6 @@ func (uc UserController) Login(c echo.Context) error {
 		return err
 	}
 
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
 	if sess.IsNew {
 		sess.Options = &sessions.Options{
 			Path:     "/",

@@ -10,7 +10,6 @@
     </div>
 
     <!-- Content Row -->
-
     <div class="row">
         <!-- Area Chart -->
         <div class="col-12">
@@ -22,11 +21,18 @@
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
+                    {{if .Error}}
+                      <div class="alert alert-danger">{{.Error.Message}}</div>
+                    {{end}}
+                    {{if .Success}}
+                      <div class="alert alert-success">{{.Success.Message}}</div>
+                    {{end}}
                     <div class="alert alert-success" style="display: none;" id="success-alert">
                         Order Success
                     </div>
                     <div class="alert alert-danger" style="display: none;" id="failed-alert">
-                        Order Failed
+                        <p id="message"></p>
+                        <p id="errors"></p>
                     </div>
                     <form id="create-order-form">
                         <div class="row">
@@ -39,7 +45,7 @@
                                         tabindex="1"
                                         autofocus>
                                         <option value="">Select Product</option>
-                                        {{range .Products}}
+                                        {{range .Data.Products}}
                                             <option
                                                 value="{{.ID}}"
                                                 data-id="{{.ID}}"
@@ -129,6 +135,7 @@
         <td id="quantity"></td>
         <td class="text-right" id="price"></td>
         <td class="text-right" id="subtotal"></td>
+        <td class="text-center" id="action"></td>
     </tr>
 </template>
 
@@ -181,8 +188,20 @@
                 $("#success-alert").show().delay(5000).fadeOut();
             },
             error: function(res) {
-                console.log(res)
+                const payload = res.responseJSON
+                $("#failed-alert #message").html(payload.message)
+                if (payload.errors) {
+                  Object.values(payload.errors).forEach(error => {
+                    $("#failed-alert #errors").append(`<li>${error}</li>`)
+                  });
+                }
+
                 $("#failed-alert").show().delay(5000).fadeOut();
+                setTimeout(function() {
+                  $("#failed-alert #message").html("");
+                  $("#failed-alert #errors").html("");
+                }, 5000)
+
             },
             complete: function() {
                 $('#submit-button').attr('disabled', false)
@@ -195,8 +214,7 @@
         let selectedOption = $('#select-product').find(':selected');
         let selectedId = Number($('#select-product').val());
         let orderQuantity = Number($('#product-quantity').val());
-
-        if (!selectedId || !orderQuantity) return
+        if (!selectedId || orderQuantity < 1) return
 
         detailOrderItem = detailOrderItems.find(item => item.id == selectedId)
         if (!detailOrderItem) {
@@ -257,6 +275,9 @@
                 temp.contents().find("#quantity").html(detailOrderItem.quantity);
                 temp.contents().find("#price").html("Rp. " + detailOrderItem.price);
                 temp.contents().find("#subtotal").html("Rp. " + detailOrderItem.subtotal);
+
+                deletButton = `<button class='btn btn-sm btn-icon btn-danger' onclick='deleteProduct(${detailOrderItem.id})'><i class='fas fa-trash' /></button>`
+                temp.contents().find("#action").html(deletButton);
                 $('#detail-order-item').append(temp.html())
             });
 
@@ -280,4 +301,8 @@
         renderItems();
     })
 </script>
+{{end}}
+
+{{define "order_create"}}
+  {{template "admin" .}}
 {{end}}
