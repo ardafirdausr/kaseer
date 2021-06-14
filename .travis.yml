@@ -1,17 +1,8 @@
 language: go
 go:
 - 1.15.x
-before_scripts:
 scripts:
 - go test -v ./...
-before_deploy:
-- touch .env
-- echo HOST=$HOST >> .env
-- echo PORT=$PORT >> .env
-- echo DEBUG=$DEBUG >> .env
-- echo MYSQL_URI=$MONGO_DB_URI >> .env
-- echo SESSION_KEY=$SESSION_KEY >> .env
-- echo SENTRY_DSN=$SENTRY_DSN >> .env
 deploy:
   provider: heroku
   skip_cleanup: true
