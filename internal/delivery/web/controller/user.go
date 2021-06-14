@@ -3,7 +3,6 @@ package controller
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/ardafirdausr/go-pos/internal"
 	"github.com/ardafirdausr/go-pos/internal/app"
@@ -58,17 +57,7 @@ func (uc UserController) UpdateUserProfile(c echo.Context) error {
 
 	photo, _ := c.FormFile("photo")
 	if photo != nil {
-		host := os.Getenv("HOST")
-		port := os.Getenv("PORT")
-		root, err := os.Getwd()
-		if err != nil {
-			return echo.ErrInternalServerError
-		}
-		strg := storage.FileSystemStorage{
-			Root: root,
-			Host: host,
-			Port: port,
-		}
+		strg := storage.FileSystemStorage{}
 		photoUrl, err := uc.userUsecase.SaveUserPhoto(strg, user, photo)
 		if err != nil {
 			sess.AddFlash("Failed upload photo", "error_message")

@@ -9,11 +9,7 @@ import (
 	"strings"
 )
 
-type FileSystemStorage struct {
-	Root string
-	Host string
-	Port string
-}
+type FileSystemStorage struct{}
 
 func (fss FileSystemStorage) Save(file *multipart.FileHeader, dir string, filename string) (string, error) {
 	src, err := file.Open()
@@ -23,7 +19,11 @@ func (fss FileSystemStorage) Save(file *multipart.FileHeader, dir string, filena
 	defer src.Close()
 
 	// Destination
-	path := filepath.Join(fss.Root, "web", "storage", dir, filename)
+	root, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	path := filepath.Join(root, "web", "storage", dir, filename)
 	if err := os.MkdirAll(filepath.Dir(path), 0770); err != nil {
 		log.Println(err)
 		return "", err
