@@ -26,18 +26,22 @@ func (uu UserUsecase) GetUserByID(ID int64) (*entity.User, error) {
 	return user, err
 }
 
-func (uu UserUsecase) GetUserByCredential(email, password string) (*entity.User, error) {
-	user, err := uu.userRepository.GetUserByEmail(email)
+func (uu UserUsecase) GetUserByCredential(credential entity.UserCredential) (*entity.User, error) {
+	user, err := uu.userRepository.GetUserByEmail(credential.Email)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
 
 	hash := sha1.New()
-	hash.Write([]byte(password))
+	hash.Write([]byte(credential.Password))
 	hashed := hash.Sum(nil)
 	isPasswordEqual := fmt.Sprintf("%x", hashed) == user.Password
 	if !isPasswordEqual {
+		err := entity.ErrInvalidCredential{
+			Message: "Invalid Password",
+			Err:     nil,
+		}
 		return nil, err
 	}
 
@@ -57,7 +61,8 @@ func (uu UserUsecase) UpdateUser(ID int64, param entity.UpdateUserParam) (bool, 
 func (uu UserUsecase) UpdateUserPassword(ID int64, password string) (bool, error) {
 	hash := sha1.New()
 	hash.Write([]byte(password))
-	hashedPassword := string(hash.Sum(nil))
+	hashBytePass := hash.Sum(nil)
+	hashedPassword := fmt.Sprintf("%x", hashBytePass)
 
 	isUpdated, err := uu.userRepository.UpdatePasswordByID(ID, hashedPassword)
 	if err != nil {

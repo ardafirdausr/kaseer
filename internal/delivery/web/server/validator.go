@@ -45,6 +45,10 @@ func (v *CustomValidator) Validate(i interface{}) error {
 				errMessage = fmt.Sprintf("Value of %s must be greater than %s", fieldName, paramValue)
 			case "gte":
 				errMessage = fmt.Sprintf("Value of %s must be greater or equal to %s", fieldName, paramValue)
+			case "email":
+				errMessage = fmt.Sprintf("Value of %s must be valid email", fieldName)
+			case "eqfield":
+				errMessage = fmt.Sprintf("Value of %s must be equal with", paramValue)
 			}
 			verr.Errors[fieldName] = errMessage
 		}

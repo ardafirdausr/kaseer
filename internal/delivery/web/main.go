@@ -17,22 +17,24 @@ func Start(app *app.App) {
 
 	userController := controller.NewUserController(app.Usecases)
 
+	// guest routes
 	authGuestRouter := web.Group("/auth", middleware.SessionGuest())
 	authGuestRouter.GET("/login", userController.ShowLoginForm)
 	authGuestRouter.POST("/login", userController.Login)
 
+	// authenticated rotues
 	authAuthenticatedUserRouter := web.Group("/auth", middleware.SessionAuth())
 	authAuthenticatedUserRouter.POST("/logout", userController.Logout)
 
 	authenticatedGroup := web.Group("", middleware.SessionAuth())
 
 	// Profile Routes
-	// profileRouter := authenticatedGroup.Group("/profile")
-	// profileRouter.GET("", ShowUserProfile)
-	// profileRouter.GET("/edit/password", showEditUserPasswordForm)
-	// profileRouter.GET("/edit", showEditUserProfileForm)
-	// profileRouter.POST("", UpdateUserProfile)
-	// profileRouter.POST("/password", UpdateUserPassword)
+	profileRouter := authenticatedGroup.Group("/profile")
+	profileRouter.GET("", userController.ShowUserProfile)
+	profileRouter.GET("/edit/password", userController.ShowEditUserPasswordForm)
+	profileRouter.GET("/edit", userController.ShowEditUserProfileForm)
+	profileRouter.POST("", userController.UpdateUserProfile)
+	profileRouter.POST("/password", userController.UpdateUserPassword)
 
 	// Order Routes
 	orderController := controller.NewOrderController(app.Usecases)
@@ -41,10 +43,6 @@ func Start(app *app.App) {
 	orderRouter.GET("/total", orderController.GetTotalOrdersData)
 	orderRouter.GET("/latest-income", orderController.GetLatestIncomeData)
 	orderRouter.GET("/annual-income", orderController.GetAnnualIncomeData)
-
-	// fix this and return of make order
-	// then profile
-	// then test
 	orderRouter.GET("/:orderId", orderController.GetOrderDetailData)
 	orderRouter.GET("", orderController.ShowAllOrders)
 	orderRouter.POST("", orderController.CreateOrder)

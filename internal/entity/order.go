@@ -22,9 +22,9 @@ type OrderItem struct {
 }
 
 type AnnualIncome struct {
-	Year   int
-	Month  string
-	Income int
+	Year   int    `json:"year"`
+	Month  string `json:"month"`
+	Income int    `json:"income"`
 }
 
 type CreateOrderParam struct {

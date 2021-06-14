@@ -12,6 +12,11 @@ type User struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type UserCredential struct {
+	Email    string `form:"email" validate:"required,email"`
+	Password string `form:"password" validate:"required"`
+}
+
 type UpdateUserParam struct {
 	Name     string  `db:"name"`
 	Email    string  `db:"email" validate:"email"`
@@ -19,6 +24,6 @@ type UpdateUserParam struct {
 }
 
 type UpdateUserPasswordParam struct {
-	Password             string `db:"password"`
-	PasswordConfirmation string
+	Password             string `db:"password" form:"password" validate:"required"`
+	PasswordConfirmation string `form:"password_confirmation" validate:"required,eqfield=Password"`
 }

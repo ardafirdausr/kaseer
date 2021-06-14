@@ -2,6 +2,21 @@ package entity
 
 import "net/http"
 
+type ErrInvalidCredential struct {
+	Message string
+	Err     error
+}
+
+func (eic ErrInvalidCredential) Error() string {
+	if eic.Err != nil {
+		return eic.Err.Error()
+	} else if eic.Message != "" {
+		return eic.Message
+	} else {
+		return http.StatusText(http.StatusBadGateway)
+	}
+}
+
 type ErrNotFound struct {
 	Message string
 	Err     error

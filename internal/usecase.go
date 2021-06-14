@@ -4,7 +4,7 @@ import "github.com/ardafirdausr/go-pos/internal/entity"
 
 type UserUsecase interface {
 	GetUserByID(ID int64) (*entity.User, error)
-	GetUserByCredential(email string, password string) (*entity.User, error)
+	GetUserByCredential(credential entity.UserCredential) (*entity.User, error)
 	UpdateUser(ID int64, param entity.UpdateUserParam) (bool, error)
 	UpdateUserPassword(ID int64, password string) (bool, error)
 }

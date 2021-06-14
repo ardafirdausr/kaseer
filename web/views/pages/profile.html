@@ -18,25 +18,28 @@
             <div class="card shadow mb-4">
                 <!-- Card Body -->
                 <div class="card-body">
+                    {{if .Success.Message}}
+                        <div class="alert alert-success text-center">{{.Success.Message}}</div>
+                    {{end}}
                     <div class="row">
                         <div class="col-12 col-md-3">
-                            {{if .User.PhotoUrl }}
+                            {{if .Data.User.PhotoUrl }}
                                 <img
-                                    src="{{.User.PhotoUrl}}"
-                                    alt="{{.User.Name}}"
+                                    src="{{.Data.User.PhotoUrl}}"
+                                    alt="{{.Data.User.Name}}"
                                     style="width: 100%; object-fit: contain;">
                             {{else}}
                                 <img
                                     src="/static/image/avatar_placeholder.png"
-                                    alt="{{.User.Name}}"
+                                    alt="{{.Data.User.Name}}"
                                     style="width: 100%; object-fit: contain;">
                             {{end}}
                         </div>
 
                         <div class="col-12 col-md-7">
                             <h1 class="mb-3 text-primary">Profile Data</h1>
-                            <h4 class="mb-3"><i class="fas fa-user mr-2"></i>{{ .User.Name }}</h4>
-                            <h4 class="text-muted mb-3"><i class="fas fa-envelope mr-2"></i>{{ .User.Email }}</h4>
+                            <h4 class="mb-3"><i class="fas fa-user mr-2"></i>{{ .Data.User.Name }}</h4>
+                            <h4 class="text-muted mb-3"><i class="fas fa-envelope mr-2"></i>{{ .Data.User.Email }}</h4>
                             <div class="mt-5">
                                 <a href="/profile/edit" class="btn btn-success">
                                     <i class="fas fa-edit mr-2"></i> Edit Profile
@@ -60,4 +63,8 @@
 {{end}}
 
 {{define "style"}}
+{{end}}
+
+{{define "profile"}}
+  {{template "admin" .}}
 {{end}}
