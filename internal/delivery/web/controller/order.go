@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/ardafirdausr/go-pos/internal"
 	"github.com/ardafirdausr/go-pos/internal/app"
@@ -92,6 +93,21 @@ func (oc OrderController) GetAnnualIncomeData(c echo.Context) error {
 	}
 
 	return responseJson(c, http.StatusOK, "Success", annualIncomes)
+}
+
+func (oc OrderController) GetOrderDetailData(c echo.Context) error {
+	paramOrderID := c.Param("orderId")
+	orderID, err := strconv.ParseInt(paramOrderID, 10, 64)
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	orderItems, err := oc.orderUc.GetOrderItems(orderID)
+	if err != nil {
+		return err
+	}
+
+	return responseJson(c, http.StatusOK, "Success", orderItems)
 }
 
 func (oc OrderController) CreateOrder(c echo.Context) error {

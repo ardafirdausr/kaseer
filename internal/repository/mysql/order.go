@@ -153,7 +153,7 @@ func (or OrderRepository) GetLastMonthIncome() (int, error) {
 
 func (or OrderRepository) GetOrderItemsByID(ID int64) ([]*entity.OrderItem, error) {
 	rows, err := or.DB.Query(`
-		SELECT p.id, p.code, p.name, p.price, oi.quantity, oi.subtotal
+		SELECT p.id as id, oi.order_id, p.id as product_id, p.code, p.name, p.price, oi.quantity, oi.subtotal, oi.created_at
 			FROM order_items AS oi
 			LEFT JOIN products AS p ON oi.product_id = p.id
 			WHERE oi.order_id = ?`,
@@ -166,7 +166,17 @@ func (or OrderRepository) GetOrderItemsByID(ID int64) ([]*entity.OrderItem, erro
 	orderItems := []*entity.OrderItem{}
 	for rows.Next() {
 		var orderItem entity.OrderItem
-		err := rows.Scan()
+		err := rows.Scan(
+			&orderItem.ID,
+			&orderItem.OrderID,
+			&orderItem.ProductID,
+			&orderItem.ProductCode,
+			&orderItem.ProductName,
+			&orderItem.ProductPrice,
+			&orderItem.Quantity,
+			&orderItem.Subtotal,
+			&orderItem.CreatedAt,
+		)
 		if err != nil {
 			log.Println(err.Error())
 		}

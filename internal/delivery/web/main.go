@@ -42,7 +42,10 @@ func Start(app *app.App) {
 	orderRouter.GET("/latest-income", orderController.GetLatestIncomeData)
 	orderRouter.GET("/annual-income", orderController.GetAnnualIncomeData)
 
-	// orderRouter.GET("/{orderId:[0-9]+}", GetOrderDetailData)
+	// fix this and return of make order
+	// then profile
+	// then test
+	orderRouter.GET("/:orderId", orderController.GetOrderDetailData)
 	orderRouter.GET("", orderController.ShowAllOrders)
 	orderRouter.POST("", orderController.CreateOrder)
 
