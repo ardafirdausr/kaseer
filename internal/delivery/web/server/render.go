@@ -35,7 +35,6 @@ func (t *HTMLRenderer) Render(w io.Writer, name string, data interface{}, c echo
 func layoutTemplate() *template.Template {
 	funcs := template.FuncMap{
 		"StrContains": strings.Contains,
-		// "FormatData": time.Now().Format("02 January 2006 - 15:04 WIB"),
 	}
 	return template.Must(template.New("").Funcs(funcs).ParseGlob("web/views/layouts/*.html"))
 }

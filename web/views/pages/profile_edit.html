@@ -31,7 +31,10 @@
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="">Name</label>
-                                    <input type="text" class="form-control" name="name" value="{{.Data.User.Name}}" required>
+                                    <input type="text" class="form-control" name="name" value="{{.User.Name}}" required>
+                                    {{if .Error.Errors.Name}}
+                                      <small class="text-danger">{{.Error.Errors.Name}}</small>
+                                    {{end}}
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
@@ -41,14 +44,20 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">@</span>
                                         </div>
-                                        <input type="email" class="form-control" name="email" value="{{.Data.User.Email}}" required>
+                                        <input type="email" class="form-control" name="email" value="{{.User.Email}}" required>
                                     </div>
+                                    {{if .Error.Errors.Email}}
+                                      <small class="text-danger">{{.Error.Errors.Email}}</small>
+                                    {{end}}
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="photo">Choose photo</label>
                                     <input type="file" class="form-control" name="photo" accept="image/*">
+                                    {{if .Error.Errors.PhotoUrl}}
+                                      <small class="text-danger">{{.Error.Errors.PhotoUrl}}</small>
+                                    {{end}}
                                 </div>
                             </div>
                         </div>

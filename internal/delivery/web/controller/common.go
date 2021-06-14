@@ -15,6 +15,7 @@ func renderPage(c echo.Context, page string, title string, additionalData echo.M
 		"Data":    additionalData,
 		"Error":   echo.Map{},
 		"Success": echo.Map{},
+		"User":    c.Get("user"),
 	}
 
 	sess, _ := session.Get("GO-POS", c)

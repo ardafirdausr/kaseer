@@ -3,10 +3,12 @@ package controller
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/ardafirdausr/go-pos/internal"
 	"github.com/ardafirdausr/go-pos/internal/app"
 	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/go-pos/internal/pkg/storage"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -25,14 +27,7 @@ func (uc UserController) ShowLoginForm(c echo.Context) error {
 }
 
 func (uc UserController) ShowUserProfile(c echo.Context) error {
-	user, ok := c.Get("user").(*entity.User)
-	if !ok {
-		log.Println("Failed to parse user session")
-		return echo.ErrUnauthorized
-	}
-
-	data := echo.Map{"User": user}
-	return renderPage(c, "profile", user.Name, data)
+	return renderPage(c, "profile", "Profile", nil)
 }
 
 func (uc UserController) ShowEditUserPasswordForm(c echo.Context) error {
@@ -40,23 +35,77 @@ func (uc UserController) ShowEditUserPasswordForm(c echo.Context) error {
 }
 
 func (uc UserController) ShowEditUserProfileForm(c echo.Context) error {
-	user, ok := c.Get("user").(*entity.User)
-	if !ok {
-		log.Println("Failed to parse user session")
-		return echo.ErrUnauthorized
-	}
-
-	data := echo.Map{"User": user}
-	return renderPage(c, "profile_edit", "Edit Profile", data)
+	return renderPage(c, "profile_edit", "Edit Profile", nil)
 }
 
 func (uc UserController) UpdateUserProfile(c echo.Context) error {
-	// photo, err := c.FormFile("photo")
-	// if err != nil {
-	// 	return echo.ErrBadRequest
-	// }
+	sess, _ := session.Get("GO-POS", c)
 
-	return nil
+	user, ok := c.Get("user").(*entity.User)
+	if !ok {
+		return echo.ErrInternalServerError
+	}
+
+	if err := c.Bind(user); err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	param := entity.UpdateUserParam{
+		Name:     user.Name,
+		Email:    user.Email,
+		PhotoUrl: user.PhotoUrl,
+	}
+
+	photo, _ := c.FormFile("photo")
+	if photo != nil {
+		host := os.Getenv("HOST")
+		port := os.Getenv("PORT")
+		root, err := os.Getwd()
+		if err != nil {
+			return echo.ErrInternalServerError
+		}
+		strg := storage.FileSystemStorage{
+			Root: root,
+			Host: host,
+			Port: port,
+		}
+		photoUrl, err := uc.userUsecase.SaveUserPhoto(strg, user, photo)
+		if err != nil {
+			sess.AddFlash("Failed upload photo", "error_message")
+			return c.Redirect(http.StatusSeeOther, "/profile/edit")
+		}
+
+		param.PhotoUrl = &photoUrl
+	}
+
+	err := c.Validate(&param)
+	if ev, ok := err.(entity.ErrValidation); ok {
+		sess.AddFlash(ev, "error_validation")
+		if err := sess.Save(c.Request(), c.Response()); err != nil {
+			log.Println(err)
+		}
+		return c.Redirect(http.StatusSeeOther, "/profile/edit")
+	}
+
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	isUpdated, err := uc.userUsecase.UpdateUser(user.ID, param)
+	if err != nil {
+		return err
+	}
+
+	if !isUpdated {
+		return echo.ErrInternalServerError
+	}
+
+	user.Name = param.Name
+	user.Email = param.Email
+	user.PhotoUrl = param.PhotoUrl
+	sess.AddFlash("Success updating profile", "success_message")
+	sess.Save(c.Request(), c.Response())
+	return c.Redirect(http.StatusSeeOther, "/profile")
 }
 
 func (uc UserController) UpdateUserPassword(c echo.Context) error {

@@ -4,6 +4,8 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"log"
+	"mime/multipart"
+	"path/filepath"
 
 	"github.com/ardafirdausr/go-pos/internal"
 	"github.com/ardafirdausr/go-pos/internal/entity"
@@ -46,6 +48,14 @@ func (uu UserUsecase) GetUserByCredential(credential entity.UserCredential) (*en
 	}
 
 	return user, nil
+}
+
+func (uu UserUsecase) SaveUserPhoto(storage internal.Storage, user *entity.User, photo *multipart.FileHeader) (string, error) {
+	photoName := fmt.Sprintf("user-%d", user.ID)
+	photoExt := filepath.Ext(photo.Filename)
+	filename := photoName + photoExt
+	photoDirectory := filepath.Join("image", "user")
+	return storage.Save(photo, photoDirectory, filename)
 }
 
 func (uu UserUsecase) UpdateUser(ID int64, param entity.UpdateUserParam) (bool, error) {

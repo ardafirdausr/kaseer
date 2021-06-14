@@ -14,6 +14,7 @@ func Start(app *app.App) {
 	web := server.New()
 
 	web.Static("/static", "web/assets")
+	web.Static("/storage", "web/storage")
 
 	userController := controller.NewUserController(app.Usecases)
 

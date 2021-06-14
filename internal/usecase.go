@@ -1,10 +1,15 @@
 package internal
 
-import "github.com/ardafirdausr/go-pos/internal/entity"
+import (
+	"mime/multipart"
+
+	"github.com/ardafirdausr/go-pos/internal/entity"
+)
 
 type UserUsecase interface {
 	GetUserByID(ID int64) (*entity.User, error)
 	GetUserByCredential(credential entity.UserCredential) (*entity.User, error)
+	SaveUserPhoto(storage Storage, user *entity.User, file *multipart.FileHeader) (string, error)
 	UpdateUser(ID int64, param entity.UpdateUserParam) (bool, error)
 	UpdateUserPassword(ID int64, password string) (bool, error)
 }
