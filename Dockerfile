@@ -1,4 +1,4 @@
-FROM golang:1.16
+FROM golang:1.15
 
 LABEL version="1.0.0"
 
