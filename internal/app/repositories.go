@@ -2,8 +2,9 @@ package app
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
-	"net/url"
+	"strings"
 
 	"github.com/ardafirdausr/go-pos/internal"
 	"github.com/ardafirdausr/go-pos/internal/repository/mysql"
@@ -25,17 +26,12 @@ func newMySQLRepositories(DB *sql.DB) *repositories {
 }
 
 func connectToMySQL(DBURI string) (*sql.DB, error) {
-	u, err := url.Parse(DBURI)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	queries := []string{"parseTime=true"}
+	queryString := strings.Join(queries, "&")
 
-	q := u.Query()
-	q.Set("parseTime", "true")
-	u.RawQuery = q.Encode()
-
-	DBURI = u.String()
-	DB, err := sql.Open("mysql", DBURI)
+	DBURIx := strings.TrimRight(DBURI, "/")
+	MySQLURI := fmt.Sprintf("%s?%s", DBURIx, queryString)
+	DB, err := sql.Open("mysql", MySQLURI)
 	if err != nil {
 		log.Fatal(err.Error())
 		return nil, err

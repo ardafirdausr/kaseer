@@ -1,13 +1,9 @@
 language: go
-
 go:
 - 1.16.x
-
 before_scripts:
-
 scripts:
 - go test -v ./...
-
 before_deploy:
 - touch .env
 - echo HOST=$HOST >> .env
@@ -16,12 +12,11 @@ before_deploy:
 - echo MYSQL_URI=$MONGO_DB_URI >> .env
 - echo SESSION_KEY=$SESSION_KEY >> .env
 - echo SENTRY_DSN=$SENTRY_DSN >> .env
-
 deploy:
   provider: heroku
   skip_cleanup: true
   api_key:
-    secure: WDTdNXzMU7FDy1YvoHF6RguoGkOfND0RpCxeN/2a3hE6TZhDwnZhhOWOXb2y28cOw26zZVtPhty98TVxnOBW5HcMuFuErVS3pcc/G2LNy6RPCRCveCAqxMOmY1UFIVAhnK43FzxooURCEYXOjJ2s2R7aV51FP1gLUhmYutQpOMo6veEkZs56qZVn/1K4K5rtct09BO09LxyI/jDZTQK0q95LTXcYrpTT6bmbU+O/bVKQWaUsxR89wWxqUCqdpmSXLFRIQETDUOdLTUEp660MQGAoTZrERyB7u8Cy1KqfhDetLTElfb1i92vKvhALVLuj00UneePgTv1c7OiQFfCZ8/gAYdOlG/nrxkVisje4v7Aypni9eWcAcLQ1f0sepbUTBtbdJ/i1rE6yjyKH5Z/Dv5A22DUss55DCN+0KXO0btzw3mdBRS3yx8BlGufdbPauV5Z4pwHmE2N6HOh4Emo5gUJVX0eYzjgbSTXF861jLXxPnm1EmEO49FnsmQbLDEl2FOaaMYBgWJzPZtwm2/oWxLk5IliATcVGJteYOL+H+71n6o1DDTALaSinhPZEt/ZI0QxKjp/uivtf1tTJGbJAKq2l4OjV4T/CVr7CZ4RCPb3rW0ia0XG2BKwwBvZCruVBvJh8HWOeH0XzONhKzir7uzN5wo9nnq2qhwgnyoMisLg=
+    secure: ANgswI3jk7bOgAuQQX/n/pRtiBxU+vh/eRdMRTSgXRttoXprmYQpfdSHZO7jfQFKap4rki3BwiUuVbp2wLpwenNebjkLdxXBhU9i1nLeJ2LbkjIWy5pw29w0DU9lX3A5TPmDFbIS4GYOLoAqGZ/OTYnhNh7oMys4zwItakEJfz9tQKXV8Nt/jYx7Sj7LDNOay6tNnnYyH4gax+Z07xNdkJvZ//3GFp7ijzVPO52RwkfpJijYMt6lcCtn32x7Vo1gF5PorTB3WoKuokM7hHDputMxvxJCgM19mYQSRVMRSTCI2RuBPP6TF85I0e41z2q1IPMlFehAjvztqZWZEJnw8CjdFLwOPSKZSfOHIWojsQsV1lkIiDM4Oi1xT/6hxF5gFegSttanPeI+0+l7kF6lJ906T622BKhbOvMhKJHYsSuGpSvkGFOJbcP12J6kVZqOBcM2qhlbxECZMstvIY/WC/yfAkBS5Snr3G+bp9NsFxJwZaT7ySMOQg1ZRAu5KDt7L57D49cOwwsE8g4jq+guMOeH/P3OhgGdDDBBBxTCapAAp37f9iPxkHiPCsuExxMngyGpTBj9tIlG3KF00iaba1xtXjUg/VD9zIeJivHzUT8FBxWAwjX5sabhdK6YySMAsacSvwIwPaiBsCWkDhU1EWwwen5ppr/wgom1Xx1pyNE=
   on: main
   app:
     main: ardafirdausr-go-pos

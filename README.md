@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/github/v/release/ardafirdausr/go-pos.svg?style=flat" alt="Release Version">
 </p>
 
-Point of Sales. This app is simple implementation is point of sales using GO, Echo framework, and MySQL. 
+Point of Sales. This app is simple POS implementation using GO, Echo framework, and MySQL. 
 
 ## Setup
 1. Copy .env.example file to .env
