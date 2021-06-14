@@ -45,6 +45,12 @@ func (uc UserController) UpdateUserProfile(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
+	if user.Email == "staff@mail.com" {
+		sess.AddFlash("Cannot update this demo account", "error_message")
+		sess.Save(c.Request(), c.Response())
+		return c.Redirect(http.StatusSeeOther, "/profile/edit")
+	}
+
 	if err := c.Bind(user); err != nil {
 		return echo.ErrInternalServerError
 	}
@@ -122,6 +128,12 @@ func (uc UserController) UpdateUserPassword(c echo.Context) error {
 	if !ok {
 		log.Println("Failed to parse user session")
 		return echo.ErrUnauthorized
+	}
+
+	if user.Email == "staff@mail.com" {
+		sess.AddFlash("Cannot update this demo account", "error_message")
+		sess.Save(c.Request(), c.Response())
+		return c.Redirect(http.StatusSeeOther, "/profile/edit/password")
 	}
 
 	isUpdated, err := uc.userUsecase.UpdateUserPassword(user.ID, updatePasswordParam.Password)
