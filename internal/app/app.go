@@ -17,8 +17,7 @@ func New() (*App, error) {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err.Error())
-		return nil, err
+		log.Println(".env file not found")
 	}
 
 	MySQLURI := os.Getenv("MYSQL_URI")
