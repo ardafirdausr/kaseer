@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/ardafirdausr/go-pos/internal/app"
-	"github.com/ardafirdausr/go-pos/internal/delivery/web"
+	"github.com/ardafirdausr/kaseer/internal/app"
+	"github.com/ardafirdausr/kaseer/internal/delivery/web"
 )
 
 func main() {

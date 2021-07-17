@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/app"
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/app"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 	"github.com/labstack/echo/v4"
 )
 

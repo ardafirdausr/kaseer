@@ -1,4 +1,4 @@
-module github.com/ardafirdausr/go-pos
+module github.com/ardafirdausr/kaseer
 
 // +heroku goVersion go1.15
 go 1.15

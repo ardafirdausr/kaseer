@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/app"
-	"github.com/ardafirdausr/go-pos/internal/entity"
-	"github.com/ardafirdausr/go-pos/internal/pkg/storage"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/app"
+	"github.com/ardafirdausr/kaseer/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal/pkg/storage"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -38,7 +38,7 @@ func (uc UserController) ShowEditUserProfileForm(c echo.Context) error {
 }
 
 func (uc UserController) UpdateUserProfile(c echo.Context) error {
-	sess, _ := session.Get("GO-POS", c)
+	sess, _ := session.Get("kaseer", c)
 
 	user, ok := c.Get("user").(*entity.User)
 	if !ok {
@@ -104,7 +104,7 @@ func (uc UserController) UpdateUserProfile(c echo.Context) error {
 }
 
 func (uc UserController) UpdateUserPassword(c echo.Context) error {
-	sess, _ := session.Get("GO-POS", c)
+	sess, _ := session.Get("kaseer", c)
 
 	var updatePasswordParam entity.UpdateUserPasswordParam
 	if err := c.Bind(&updatePasswordParam); err != nil {
@@ -151,7 +151,7 @@ func (uc UserController) UpdateUserPassword(c echo.Context) error {
 }
 
 func (uc UserController) Login(c echo.Context) error {
-	sess, _ := session.Get("GO-POS", c)
+	sess, _ := session.Get("kaseer", c)
 
 	var credential entity.UserCredential
 	if err := c.Bind(&credential); err != nil {
@@ -202,7 +202,7 @@ func (uc UserController) Login(c echo.Context) error {
 }
 
 func (uc UserController) Logout(c echo.Context) error {
-	sess, err := session.Get("GO-POS", c)
+	sess, err := session.Get("kaseer", c)
 	if err != nil {
 		log.Println(err)
 	}

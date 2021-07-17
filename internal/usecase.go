@@ -3,7 +3,7 @@ package internal
 import (
 	"mime/multipart"
 
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 )
 
 type UserUsecase interface {

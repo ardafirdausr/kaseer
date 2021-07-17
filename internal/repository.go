@@ -1,6 +1,6 @@
 package internal
 
-import "github.com/ardafirdausr/go-pos/internal/entity"
+import "github.com/ardafirdausr/kaseer/internal/entity"
 
 type UserRepository interface {
 	// Get User by user ID.

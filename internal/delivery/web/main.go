@@ -3,10 +3,10 @@ package web
 import (
 	"net/http"
 
-	"github.com/ardafirdausr/go-pos/internal/app"
-	"github.com/ardafirdausr/go-pos/internal/delivery/web/controller"
-	"github.com/ardafirdausr/go-pos/internal/delivery/web/middleware"
-	"github.com/ardafirdausr/go-pos/internal/delivery/web/server"
+	"github.com/ardafirdausr/kaseer/internal/app"
+	"github.com/ardafirdausr/kaseer/internal/delivery/web/controller"
+	"github.com/ardafirdausr/kaseer/internal/delivery/web/middleware"
+	"github.com/ardafirdausr/kaseer/internal/delivery/web/server"
 	"github.com/labstack/echo/v4"
 )
 

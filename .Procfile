@@ -1,1 +1,1 @@
-web: bin/pos
+web: bin/kaseer

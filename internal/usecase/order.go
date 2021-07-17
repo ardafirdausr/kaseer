@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 )
 
 type OrderUsecase struct {

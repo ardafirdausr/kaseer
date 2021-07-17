@@ -6,8 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/repository/mysql"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/repository/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 

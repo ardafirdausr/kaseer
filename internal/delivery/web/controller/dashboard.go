@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/app"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/app"
 	"github.com/labstack/echo/v4"
 )
 

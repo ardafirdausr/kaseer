@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/app"
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/app"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 )
@@ -62,7 +62,7 @@ func (pc ProductController) ShowEditProductForm(c echo.Context) error {
 }
 
 func (pc ProductController) CreateProduct(c echo.Context) error {
-	sess, _ := session.Get("GO-POS", c)
+	sess, _ := session.Get("kaseer", c)
 
 	var param entity.CreateProductParam
 	if err := c.Bind(&param); err != nil {
@@ -101,7 +101,7 @@ func (pc ProductController) CreateProduct(c echo.Context) error {
 }
 
 func (pc ProductController) UpdateProduct(c echo.Context) error {
-	sess, _ := session.Get("GO-POS", c)
+	sess, _ := session.Get("kaseer", c)
 
 	pid := c.Param("productId")
 	productID, err := strconv.ParseInt(pid, 10, 64)
@@ -157,7 +157,7 @@ func (pc ProductController) DeleteProduct(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	sess, _ := session.Get("GO-POS", c)
+	sess, _ := session.Get("kaseer", c)
 	sess.AddFlash("Success Deleting Product", "success_message")
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(http.StatusSeeOther, "/products")

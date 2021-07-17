@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/usecase"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/usecase"
 )
 
 type Usecases struct {

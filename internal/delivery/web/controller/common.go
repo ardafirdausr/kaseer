@@ -3,7 +3,7 @@ package controller
 import (
 	"net/http"
 
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 )
@@ -18,7 +18,7 @@ func renderPage(c echo.Context, page string, title string, additionalData echo.M
 		"User":    c.Get("user"),
 	}
 
-	sess, _ := session.Get("GO-POS", c)
+	sess, _ := session.Get("kaseer", c)
 	ems := sess.Flashes("error_message")
 	if len(ems) > 0 {
 		errs := data["Error"].(echo.Map)

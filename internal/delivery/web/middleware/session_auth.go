@@ -3,7 +3,7 @@ package middleware
 import (
 	"log"
 
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -12,7 +12,7 @@ import (
 func SessionAuth() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			sess, err := session.Get("GO-POS", c)
+			sess, err := session.Get("kaseer", c)
 			if err != nil {
 				return err
 			}
