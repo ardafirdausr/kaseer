@@ -1,24 +1,29 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 )
 
 type OrderUsecase struct {
 	orderRepository   internal.OrderRepository
 	productRepository internal.ProductRepository
+	UnitOfWork        internal.UnitOfWork
 }
 
-func NewOrderUsecase(orderRepository internal.OrderRepository, productRepository internal.ProductRepository) *OrderUsecase {
-	return &OrderUsecase{orderRepository, productRepository}
+func NewOrderUsecase(
+	orderRepository internal.OrderRepository,
+	productRepository internal.ProductRepository,
+	UnitOfWork internal.UnitOfWork) *OrderUsecase {
+	return &OrderUsecase{orderRepository, productRepository, UnitOfWork}
 }
 
-func (ou OrderUsecase) GetAllOrders() ([]*entity.Order, error) {
-	orders, err := ou.orderRepository.GetAllOrders()
+func (ou OrderUsecase) GetAllOrders(ctx context.Context) ([]*entity.Order, error) {
+	orders, err := ou.orderRepository.GetAllOrders(ctx)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -26,8 +31,8 @@ func (ou OrderUsecase) GetAllOrders() ([]*entity.Order, error) {
 	return orders, err
 }
 
-func (ou OrderUsecase) GetOrderItems(orderID int64) ([]*entity.OrderItem, error) {
-	orderItems, err := ou.orderRepository.GetOrderItemsByID(orderID)
+func (ou OrderUsecase) GetOrderItems(ctx context.Context, orderID int64) ([]*entity.OrderItem, error) {
+	orderItems, err := ou.orderRepository.GetOrderItemsByID(ctx, orderID)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -35,8 +40,8 @@ func (ou OrderUsecase) GetOrderItems(orderID int64) ([]*entity.OrderItem, error)
 	return orderItems, err
 }
 
-func (ou OrderUsecase) GetAnnualIncome() ([]*entity.AnnualIncome, error) {
-	annualIncomes, err := ou.orderRepository.GetAnnualIncome()
+func (ou OrderUsecase) GetAnnualIncome(ctx context.Context) ([]*entity.AnnualIncome, error) {
+	annualIncomes, err := ou.orderRepository.GetAnnualIncome(ctx)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -44,8 +49,8 @@ func (ou OrderUsecase) GetAnnualIncome() ([]*entity.AnnualIncome, error) {
 	return annualIncomes, err
 }
 
-func (ou OrderUsecase) GetDailyOrderCount() (int, error) {
-	res, err := ou.orderRepository.GetDailyOrderCount()
+func (ou OrderUsecase) GetDailyOrderCount(ctx context.Context) (int, error) {
+	res, err := ou.orderRepository.GetDailyOrderCount(ctx)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -53,8 +58,8 @@ func (ou OrderUsecase) GetDailyOrderCount() (int, error) {
 	return res, err
 }
 
-func (ou OrderUsecase) GetTotalOrderCount() (int, error) {
-	res, err := ou.orderRepository.GetTotalOrderCount()
+func (ou OrderUsecase) GetTotalOrderCount(ctx context.Context) (int, error) {
+	res, err := ou.orderRepository.GetTotalOrderCount(ctx)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -62,8 +67,8 @@ func (ou OrderUsecase) GetTotalOrderCount() (int, error) {
 	return res, err
 }
 
-func (ou OrderUsecase) GetLastDayIncome() (int, error) {
-	res, err := ou.orderRepository.GetLastDayIncome()
+func (ou OrderUsecase) GetLastDayIncome(ctx context.Context) (int, error) {
+	res, err := ou.orderRepository.GetLastDayIncome(ctx)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -71,8 +76,8 @@ func (ou OrderUsecase) GetLastDayIncome() (int, error) {
 	return res, err
 }
 
-func (ou OrderUsecase) GetLastMonthIncome() (int, error) {
-	res, err := ou.orderRepository.GetLastMonthIncome()
+func (ou OrderUsecase) GetLastMonthIncome(ctx context.Context) (int, error) {
+	res, err := ou.orderRepository.GetLastMonthIncome(ctx)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -80,17 +85,19 @@ func (ou OrderUsecase) GetLastMonthIncome() (int, error) {
 	return res, err
 }
 
-func (ou OrderUsecase) Create(param entity.CreateOrderParam) (*entity.Order, error) {
+func (ou OrderUsecase) Create(ctx context.Context, param entity.CreateOrderParam) (*entity.Order, error) {
 	// check available quantity
-	orderQuantity := map[int64]int{}
+	orderQuantity := make(map[int64]int)
+	productSale := make(map[int64]int)
 	productIDs := make([]int64, 0)
 
 	for _, item := range param.Items {
-		orderQuantity[item.ProductId] = item.Quantity
-		productIDs = append(productIDs, item.ProductId)
+		orderQuantity[item.ProductID] = item.Quantity
+		productSale[item.ProductID] = item.Quantity
+		productIDs = append(productIDs, item.ProductID)
 	}
 
-	products, err := ou.productRepository.GetProductsByIDs(productIDs...)
+	products, err := ou.productRepository.GetProductsByIDs(ctx, productIDs...)
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +116,33 @@ func (ou OrderUsecase) Create(param entity.CreateOrderParam) (*entity.Order, err
 		return nil, ev
 	}
 
-	order, err := ou.orderRepository.Create(param)
+	txContext, err := ou.UnitOfWork.Begin(ctx)
 	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	order, err := ou.orderRepository.Create(txContext, param)
+	if err != nil {
+		log.Println(err.Error())
+		ou.UnitOfWork.Rollback(txContext)
+		return nil, err
+	}
+
+	if err := ou.orderRepository.CreateOrderItems(txContext, order.ID, param.Items); err != nil {
+		log.Println(err.Error())
+		ou.UnitOfWork.Rollback(txContext)
+		return nil, err
+	}
+
+	if err := ou.productRepository.DecrementProductByIDs(txContext, productSale); err != nil {
+		log.Println(err.Error())
+		ou.UnitOfWork.Rollback(txContext)
+		return nil, err
+	}
+
+	if err := ou.UnitOfWork.Commit(txContext); err != nil {
+		log.Println(err.Error())
 		return nil, err
 	}
 

@@ -1,26 +1,28 @@
 package usecase
 
 import (
+	"context"
 	"crypto/sha1"
 	"fmt"
 	"log"
 	"mime/multipart"
 	"path/filepath"
 
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 )
 
 type UserUsecase struct {
 	userRepository internal.UserRepository
+	storage        internal.Storage
 }
 
-func NewUserUsecase(userRepository internal.UserRepository) *UserUsecase {
-	return &UserUsecase{userRepository: userRepository}
+func NewUserUsecase(userRepository internal.UserRepository, storage internal.Storage) *UserUsecase {
+	return &UserUsecase{userRepository, storage}
 }
 
-func (uu UserUsecase) GetUserByID(ID int64) (*entity.User, error) {
-	user, err := uu.userRepository.GetUserByID(ID)
+func (uu UserUsecase) GetUserByID(ctx context.Context, ID int64) (*entity.User, error) {
+	user, err := uu.userRepository.GetUserByID(ctx, ID)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -28,8 +30,8 @@ func (uu UserUsecase) GetUserByID(ID int64) (*entity.User, error) {
 	return user, err
 }
 
-func (uu UserUsecase) GetUserByCredential(credential entity.UserCredential) (*entity.User, error) {
-	user, err := uu.userRepository.GetUserByEmail(credential.Email)
+func (uu UserUsecase) GetUserByCredential(ctx context.Context, credential entity.UserCredential) (*entity.User, error) {
+	user, err := uu.userRepository.GetUserByEmail(ctx, credential.Email)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -50,16 +52,16 @@ func (uu UserUsecase) GetUserByCredential(credential entity.UserCredential) (*en
 	return user, nil
 }
 
-func (uu UserUsecase) SaveUserPhoto(storage internal.Storage, user *entity.User, photo *multipart.FileHeader) (string, error) {
+func (uu UserUsecase) SaveUserPhoto(ctx context.Context, user *entity.User, photo *multipart.FileHeader) (string, error) {
 	photoName := fmt.Sprintf("user-%d", user.ID)
 	photoExt := filepath.Ext(photo.Filename)
 	filename := photoName + photoExt
 	photoDirectory := filepath.Join("image", "user")
-	return storage.Save(photo, photoDirectory, filename)
+	return uu.storage.Save(photo, photoDirectory, filename)
 }
 
-func (uu UserUsecase) UpdateUser(ID int64, param entity.UpdateUserParam) (bool, error) {
-	isUpdated, err := uu.userRepository.UpdateByID(ID, param)
+func (uu UserUsecase) UpdateUser(ctx context.Context, ID int64, param entity.UpdateUserParam) (bool, error) {
+	isUpdated, err := uu.userRepository.UpdateByID(ctx, ID, param)
 	if err != nil {
 		log.Println(err.Error())
 		return false, err
@@ -68,13 +70,13 @@ func (uu UserUsecase) UpdateUser(ID int64, param entity.UpdateUserParam) (bool, 
 	return isUpdated, nil
 }
 
-func (uu UserUsecase) UpdateUserPassword(ID int64, password string) (bool, error) {
+func (uu UserUsecase) UpdateUserPassword(ctx context.Context, ID int64, password string) (bool, error) {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 	hashBytePass := hash.Sum(nil)
 	hashedPassword := fmt.Sprintf("%x", hashBytePass)
 
-	isUpdated, err := uu.userRepository.UpdatePasswordByID(ID, hashedPassword)
+	isUpdated, err := uu.userRepository.UpdatePasswordByID(ctx, ID, hashedPassword)
 	if err != nil {
 		log.Println(err.Error())
 	}

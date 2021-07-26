@@ -1,9 +1,9 @@
 <h1 align="center">PoS</h1>
 
 <p align="center">
-  <img src="https://travis-ci.com/ardafirdausr/go-pos.svg?branch=main" alt="Build Status">
+  <img src="https://travis-ci.com/ardafirdausr/kaseer.svg?branch=main" alt="Build Status">
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">  
-  <img src="https://img.shields.io/github/v/release/ardafirdausr/go-pos.svg?style=flat" alt="Release Version">
+  <img src="https://img.shields.io/github/v/release/ardafirdausr/kaseer.svg?style=flat" alt="Release Version">
 </p>
 
 Point of Sales. This app is simple POS implementation using GO, Echo framework, and MySQL. 

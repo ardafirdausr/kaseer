@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/usecase"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/usecase"
 )
 
 type Usecases struct {
@@ -11,10 +11,10 @@ type Usecases struct {
 	OrderUsecase   internal.OrderUsecase
 }
 
-func newUsecases(repos *repositories) *Usecases {
-	userUsecase := usecase.NewUserUsecase(repos.UserRepository)
-	productUsecase := usecase.NewProductUsecase(repos.ProductRepository)
-	orderUsecase := usecase.NewOrderUsecase(repos.OrderRepository, repos.ProductRepository)
+func newUsecases(app *App) *Usecases {
+	userUsecase := usecase.NewUserUsecase(app.repositories.UserRepository, app.services.Storage)
+	productUsecase := usecase.NewProductUsecase(app.repositories.ProductRepository)
+	orderUsecase := usecase.NewOrderUsecase(app.repositories.OrderRepository, app.repositories.ProductRepository, app.repositories.UnitOfWork)
 	return &Usecases{
 		UserUsecase:    userUsecase,
 		ProductUsecase: productUsecase,

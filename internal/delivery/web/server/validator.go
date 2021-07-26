@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )

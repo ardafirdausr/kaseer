@@ -11,7 +11,7 @@ import (
 func SessionGuest() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			sess, err := session.Get("GO-POS", c)
+			sess, err := session.Get("kaseer", c)
 			if err != nil {
 				return err
 			}

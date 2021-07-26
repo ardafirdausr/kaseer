@@ -1,10 +1,11 @@
 package usecase
 
 import (
+	"context"
 	"log"
 
-	"github.com/ardafirdausr/go-pos/internal"
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 )
 
 type ProductUsecase struct {
@@ -15,8 +16,8 @@ func NewProductUsecase(productRepository internal.ProductRepository) *ProductUse
 	return &ProductUsecase{productRepository: productRepository}
 }
 
-func (pu ProductUsecase) GetAllProducts() ([]*entity.Product, error) {
-	products, err := pu.productRepository.GetAllProducts()
+func (pu ProductUsecase) GetAllProducts(ctx context.Context) ([]*entity.Product, error) {
+	products, err := pu.productRepository.GetAllProducts(ctx)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -24,8 +25,8 @@ func (pu ProductUsecase) GetAllProducts() ([]*entity.Product, error) {
 	return products, err
 }
 
-func (pu ProductUsecase) GetProductByID(ID int64) (*entity.Product, error) {
-	product, err := pu.productRepository.GetProductByID(ID)
+func (pu ProductUsecase) GetProductByID(ctx context.Context, ID int64) (*entity.Product, error) {
+	product, err := pu.productRepository.GetProductByID(ctx, ID)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -33,8 +34,8 @@ func (pu ProductUsecase) GetProductByID(ID int64) (*entity.Product, error) {
 	return product, err
 }
 
-func (pu ProductUsecase) GetProductByCode(code string) (*entity.Product, error) {
-	product, err := pu.productRepository.GetProductByCode(code)
+func (pu ProductUsecase) GetProductByCode(ctx context.Context, code string) (*entity.Product, error) {
+	product, err := pu.productRepository.GetProductByCode(ctx, code)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -42,8 +43,8 @@ func (pu ProductUsecase) GetProductByCode(code string) (*entity.Product, error) 
 	return product, err
 }
 
-func (pu ProductUsecase) GetBestSellerProducts() ([]*entity.ProductSale, error) {
-	productSales, err := pu.productRepository.GetBestSellerProducts()
+func (pu ProductUsecase) GetBestSellerProducts(ctx context.Context) ([]*entity.ProductSale, error) {
+	productSales, err := pu.productRepository.GetBestSellerProducts(ctx)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -51,8 +52,8 @@ func (pu ProductUsecase) GetBestSellerProducts() ([]*entity.ProductSale, error) 
 	return productSales, err
 }
 
-func (pu ProductUsecase) CreateProduct(param entity.CreateProductParam) (*entity.Product, error) {
-	exProduct, _ := pu.productRepository.GetProductByCode(param.Code)
+func (pu ProductUsecase) CreateProduct(ctx context.Context, param entity.CreateProductParam) (*entity.Product, error) {
+	exProduct, _ := pu.productRepository.GetProductByCode(ctx, param.Code)
 	if exProduct != nil {
 		return nil, entity.ErrItemAlreadyExists{
 			Message: "Product already exists",
@@ -60,7 +61,7 @@ func (pu ProductUsecase) CreateProduct(param entity.CreateProductParam) (*entity
 		}
 	}
 
-	product, err := pu.productRepository.Create(param)
+	product, err := pu.productRepository.Create(ctx, param)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -68,8 +69,8 @@ func (pu ProductUsecase) CreateProduct(param entity.CreateProductParam) (*entity
 	return product, err
 }
 
-func (pu ProductUsecase) UpdateProduct(ID int64, param entity.UpdateProductParam) (bool, error) {
-	isUpdated, err := pu.productRepository.UpdateByID(ID, param)
+func (pu ProductUsecase) UpdateProduct(ctx context.Context, ID int64, param entity.UpdateProductParam) (bool, error) {
+	isUpdated, err := pu.productRepository.UpdateByID(ctx, ID, param)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -77,8 +78,8 @@ func (pu ProductUsecase) UpdateProduct(ID int64, param entity.UpdateProductParam
 	return isUpdated, err
 }
 
-func (pu ProductUsecase) DeleteProduct(ID int64) (bool, error) {
-	isUpdated, err := pu.productRepository.DeleteByID(ID)
+func (pu ProductUsecase) DeleteProduct(ctx context.Context, ID int64) (bool, error) {
+	isUpdated, err := pu.productRepository.DeleteByID(ctx, ID)
 	if err != nil {
 		log.Println(err.Error())
 	}

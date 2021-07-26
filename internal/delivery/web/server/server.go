@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ardafirdausr/go-pos/internal/delivery/web/middleware"
+	"github.com/ardafirdausr/kaseer/internal/delivery/web/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"

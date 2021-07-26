@@ -3,7 +3,7 @@ package middleware
 import (
 	"encoding/gob"
 
-	"github.com/ardafirdausr/go-pos/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal/entity"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
