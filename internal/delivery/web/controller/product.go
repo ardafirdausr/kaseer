@@ -23,7 +23,8 @@ func NewProductController(ucs *app.Usecases) *ProductController {
 }
 
 func (pc ProductController) ShowAllProducts(c echo.Context) error {
-	products, err := pc.productUc.GetAllProducts()
+	ctx := c.Request().Context()
+	products, err := pc.productUc.GetAllProducts(ctx)
 	if err != nil {
 		return err
 	}
@@ -33,7 +34,8 @@ func (pc ProductController) ShowAllProducts(c echo.Context) error {
 }
 
 func (pc ProductController) GetBestSellerProductsData(c echo.Context) error {
-	products, err := pc.productUc.GetBestSellerProducts()
+	ctx := c.Request().Context()
+	products, err := pc.productUc.GetBestSellerProducts(ctx)
 	if err != nil {
 		return err
 	}
@@ -52,7 +54,8 @@ func (pc ProductController) ShowEditProductForm(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 
-	product, err := pc.productUc.GetProductByID(productID)
+	ctx := c.Request().Context()
+	product, err := pc.productUc.GetProductByID(ctx, productID)
 	if err != nil {
 		return err
 	}
@@ -82,7 +85,8 @@ func (pc ProductController) CreateProduct(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	product, err := pc.productUc.CreateProduct(param)
+	ctx := c.Request().Context()
+	product, err := pc.productUc.CreateProduct(ctx, param)
 	if eae, ok := err.(entity.ErrItemAlreadyExists); ok {
 		msg := fmt.Sprintf("Failed creating product. %s", eae.Message)
 		sess.AddFlash(msg, "error_message")
@@ -109,7 +113,8 @@ func (pc ProductController) UpdateProduct(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 
-	_, err = pc.productUc.GetProductByID(productID)
+	ctx := c.Request().Context()
+	_, err = pc.productUc.GetProductByID(ctx, productID)
 	if _, ok := err.(entity.ErrNotFound); ok {
 		return echo.ErrNotFound
 	}
@@ -127,7 +132,7 @@ func (pc ProductController) UpdateProduct(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, editProductUrl)
 	}
 
-	isUpdated, err := pc.productUc.UpdateProduct(productID, updateParam)
+	isUpdated, err := pc.productUc.UpdateProduct(ctx, productID, updateParam)
 	if err != nil {
 		return err
 	}
@@ -148,7 +153,8 @@ func (pc ProductController) DeleteProduct(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 
-	isDeleted, err := pc.productUc.DeleteProduct(productID)
+	ctx := c.Request().Context()
+	isDeleted, err := pc.productUc.DeleteProduct(ctx, productID)
 	if err != nil {
 		return err
 	}

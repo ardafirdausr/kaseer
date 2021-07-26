@@ -68,7 +68,7 @@ func (che CustomHTTPErrorHandler) Handler(err error, c echo.Context) {
 		if err != nil {
 			log.Println(he.Message)
 			log.Println(he.Error())
-			// che.logger.Error(err)
+			che.logger.Error(err)
 		}
 	}
 }

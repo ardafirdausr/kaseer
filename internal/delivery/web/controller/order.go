@@ -22,7 +22,8 @@ func NewOrderController(ucs *app.Usecases) *OrderController {
 }
 
 func (oc OrderController) ShowAllOrders(c echo.Context) error {
-	orders, err := oc.orderUc.GetAllOrders()
+	ctx := c.Request().Context()
+	orders, err := oc.orderUc.GetAllOrders(ctx)
 	if err != nil {
 		return err
 	}
@@ -32,7 +33,8 @@ func (oc OrderController) ShowAllOrders(c echo.Context) error {
 }
 
 func (oc OrderController) ShowCreateOrderForm(c echo.Context) error {
-	products, err := oc.productUc.GetAllProducts()
+	ctx := c.Request().Context()
+	products, err := oc.productUc.GetAllProducts(ctx)
 	if err != nil {
 		return err
 	}
@@ -42,18 +44,19 @@ func (oc OrderController) ShowCreateOrderForm(c echo.Context) error {
 }
 
 func (oc OrderController) GetTotalOrdersData(c echo.Context) error {
+	ctx := c.Request().Context()
 	orderType := c.FormValue("type")
 	var totalOrderCount int
 	switch orderType {
 	case "day":
-		dailyOrder, err := oc.orderUc.GetDailyOrderCount()
+		dailyOrder, err := oc.orderUc.GetDailyOrderCount(ctx)
 		if err != nil {
 			return echo.ErrInternalServerError
 		}
 
 		totalOrderCount = dailyOrder
 	default:
-		totalOrder, err := oc.orderUc.GetTotalOrderCount()
+		totalOrder, err := oc.orderUc.GetTotalOrderCount(ctx)
 		if err != nil {
 			return echo.ErrInternalServerError
 		}
@@ -65,17 +68,18 @@ func (oc OrderController) GetTotalOrdersData(c echo.Context) error {
 }
 
 func (oc OrderController) GetLatestIncomeData(c echo.Context) error {
+	ctx := c.Request().Context()
 	orderType := c.FormValue("type")
 	var totalIncome int
 	switch orderType {
 	case "day":
-		dailyIncome, err := oc.orderUc.GetLastDayIncome()
+		dailyIncome, err := oc.orderUc.GetLastDayIncome(ctx)
 		if err != nil {
 			return echo.ErrInternalServerError
 		}
 		totalIncome = dailyIncome
 	case "month":
-		monthlyIncome, err := oc.orderUc.GetLastMonthIncome()
+		monthlyIncome, err := oc.orderUc.GetLastMonthIncome(ctx)
 		if err != nil {
 			return echo.ErrInternalServerError
 		}
@@ -87,7 +91,8 @@ func (oc OrderController) GetLatestIncomeData(c echo.Context) error {
 }
 
 func (oc OrderController) GetAnnualIncomeData(c echo.Context) error {
-	annualIncomes, err := oc.orderUc.GetAnnualIncome()
+	ctx := c.Request().Context()
+	annualIncomes, err := oc.orderUc.GetAnnualIncome(ctx)
 	if err != nil {
 		return err
 	}
@@ -102,7 +107,8 @@ func (oc OrderController) GetOrderDetailData(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	orderItems, err := oc.orderUc.GetOrderItems(orderID)
+	ctx := c.Request().Context()
+	orderItems, err := oc.orderUc.GetOrderItems(ctx, orderID)
 	if err != nil {
 		return err
 	}
@@ -118,14 +124,15 @@ func (oc OrderController) CreateOrder(c echo.Context) error {
 
 	err := c.Validate(&orderParam)
 	if ev, ok := err.(entity.ErrValidation); ok {
-		return responseJson(c, http.StatusBadRequest, "Data invalid", ev.Errors)
+		return responseJson(c, http.StatusBadRequest, "Invalid data", ev.Errors)
 	}
 
 	if err != nil {
-		return responseJson(c, http.StatusBadRequest, "Data invalid", nil)
+		return responseJson(c, http.StatusBadRequest, "Invalid data", nil)
 	}
 
-	order, err := oc.orderUc.Create(orderParam)
+	ctx := c.Request().Context()
+	order, err := oc.orderUc.Create(ctx, orderParam)
 	if ev, ok := err.(entity.ErrValidation); ok {
 		return responseErrorJson(c, http.StatusBadRequest, ev.Message, ev.Errors)
 	}

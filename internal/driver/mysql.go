@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"net/url"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func ConnectToMySQLDB(DBURI string) (*sql.DB, error) {

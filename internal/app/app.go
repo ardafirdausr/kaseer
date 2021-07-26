@@ -2,13 +2,14 @@ package app
 
 import (
 	"log"
-	"os"
 
 	"github.com/joho/godotenv"
 )
 
 type App struct {
 	repositories *repositories
+	drivers      *drivers
+	services     *services
 	Usecases     *Usecases
 }
 
@@ -20,15 +21,16 @@ func New() (*App, error) {
 		log.Println(".env file not found")
 	}
 
-	MySQLURI := os.Getenv("MYSQL_URI")
-	MySQL, err := connectToMySQL(MySQLURI)
+	drivers, err := newDrivers()
 	if err != nil {
 		log.Fatal(err.Error())
 		return nil, err
 	}
 
-	app := &App{}
-	app.repositories = newMySQLRepositories(MySQL)
-	app.Usecases = newUsecases(app.repositories)
+	app := new(App)
+	app.drivers = drivers
+	app.repositories = newMySQLRepositories(app.drivers.MySQL)
+	app.services = NewServices()
+	app.Usecases = newUsecases(app)
 	return app, nil
 }
