@@ -14,18 +14,6 @@ type CustomValidator struct {
 }
 
 func (v *CustomValidator) Validate(i interface{}) error {
-	// paramReflectValue := reflect.ValueOf(i)
-	// switch paramReflectValue.Kind() {
-	// case reflect.Map:
-	// 	i, ok = i.(echo.Map)
-	// 	if !ok {
-
-	// 	}
-	// 	v.validator.ValidateMap(i["data"], i["rules"])
-	// case reflect.Struct:
-	// 	v.validator.Struct(i)
-	// }
-
 	err := v.validator.Struct(i)
 	if _, ok := err.(*validator.InvalidValidationError); ok {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

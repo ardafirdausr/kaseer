@@ -133,6 +133,13 @@ func (pc ProductController) UpdateProduct(c echo.Context) error {
 	}
 
 	isUpdated, err := pc.productUc.UpdateProduct(ctx, productID, updateParam)
+	if eae, ok := err.(entity.ErrItemAlreadyExists); ok {
+		msg := fmt.Sprintf("Failed creating product. %s", eae.Message)
+		sess.AddFlash(msg, "error_message")
+		sess.Save(c.Request(), c.Response())
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/products/%d/edit", productID))
+	}
+
 	if err != nil {
 		return err
 	}
