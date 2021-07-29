@@ -64,15 +64,25 @@ func (pu ProductUsecase) CreateProduct(ctx context.Context, param entity.CreateP
 	product, err := pu.productRepository.Create(ctx, param)
 	if err != nil {
 		log.Println(err.Error())
+		return nil, err
 	}
 
 	return product, err
 }
 
 func (pu ProductUsecase) UpdateProduct(ctx context.Context, ID int64, param entity.UpdateProductParam) (bool, error) {
+	exProduct, _ := pu.productRepository.GetProductByCode(ctx, param.Code)
+	if exProduct != nil && exProduct.ID != ID {
+		return false, entity.ErrItemAlreadyExists{
+			Message: "Product code already exists",
+			Err:     nil,
+		}
+	}
+
 	isUpdated, err := pu.productRepository.UpdateByID(ctx, ID, param)
 	if err != nil {
 		log.Println(err.Error())
+		return false, err
 	}
 
 	return isUpdated, err
@@ -82,6 +92,7 @@ func (pu ProductUsecase) DeleteProduct(ctx context.Context, ID int64) (bool, err
 	isUpdated, err := pu.productRepository.DeleteByID(ctx, ID)
 	if err != nil {
 		log.Println(err.Error())
+		return false, err
 	}
 
 	return isUpdated, err

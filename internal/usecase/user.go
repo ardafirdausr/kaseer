@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"crypto/sha1"
 	"fmt"
 	"log"
 	"mime/multipart"
@@ -10,7 +9,10 @@ import (
 
 	"github.com/ardafirdausr/kaseer/internal"
 	"github.com/ardafirdausr/kaseer/internal/entity"
+	"github.com/ardafirdausr/kaseer/internal/pkg/strings"
 )
+
+var stringsHash = strings.Hash
 
 type UserUsecase struct {
 	userRepository internal.UserRepository
@@ -37,10 +39,8 @@ func (uu UserUsecase) GetUserByCredential(ctx context.Context, credential entity
 		return nil, err
 	}
 
-	hash := sha1.New()
-	hash.Write([]byte(credential.Password))
-	hashed := hash.Sum(nil)
-	isPasswordEqual := fmt.Sprintf("%x", hashed) == user.Password
+	hashedPassword := stringsHash(credential.Password)
+	isPasswordEqual := hashedPassword == user.Password
 	if !isPasswordEqual {
 		err := entity.ErrInvalidCredential{
 			Message: "Invalid Password",
@@ -71,11 +71,7 @@ func (uu UserUsecase) UpdateUser(ctx context.Context, ID int64, param entity.Upd
 }
 
 func (uu UserUsecase) UpdateUserPassword(ctx context.Context, ID int64, password string) (bool, error) {
-	hash := sha1.New()
-	hash.Write([]byte(password))
-	hashBytePass := hash.Sum(nil)
-	hashedPassword := fmt.Sprintf("%x", hashBytePass)
-
+	hashedPassword := stringsHash(password)
 	isUpdated, err := uu.userRepository.UpdatePasswordByID(ctx, ID, hashedPassword)
 	if err != nil {
 		log.Println(err.Error())
