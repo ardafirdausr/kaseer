@@ -4,6 +4,7 @@ module github.com/ardafirdausr/kaseer
 go 1.15
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/go-playground/validator/v10 v10.6.1
 	github.com/go-sql-driver/mysql v1.6.0
