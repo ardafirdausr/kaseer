@@ -7,10 +7,6 @@ import (
 	"github.com/ardafirdausr/kaseer/internal"
 	"github.com/ardafirdausr/kaseer/internal/app"
 	"github.com/ardafirdausr/kaseer/internal/entity"
-<<<<<<< HEAD
-	"github.com/ardafirdausr/kaseer/internal/pkg/storage"
-=======
->>>>>>> 0f5b82e (refactor code)
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
