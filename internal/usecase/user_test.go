@@ -47,7 +47,7 @@ func Test_GetUserByID_Success(t *testing.T) {
 	assert.ObjectsAreEqualValues(actualUser, user)
 }
 
-func Test_GetUserByCredential_Failed_When_Getting_User(t *testing.T) {
+func Test_GetUserByCredential_Failed_WhenGettingUser(t *testing.T) {
 	ctx := context.TODO()
 	credential := entity.UserCredential{
 		Email:    user.Email,
@@ -64,7 +64,7 @@ func Test_GetUserByCredential_Failed_When_Getting_User(t *testing.T) {
 	assert.Nil(t, user)
 }
 
-func Test_GetUserByCredential_Failed_When_Password_Not_Equal(t *testing.T) {
+func Test_GetUserByCredential_Failed_WhenPasswordNotEqual(t *testing.T) {
 	oriHash := stringsHash
 	stringsHash = func(v string) string {
 		return "differentPassword"

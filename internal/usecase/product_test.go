@@ -132,7 +132,7 @@ func Test_GetBestSellerProducts_Success(t *testing.T) {
 	assert.ObjectsAreEqualValues(productSales, aProducts)
 }
 
-func Test_CreateProduct_Failed_When_Product_Code_Already_Exists(t *testing.T) {
+func Test_CreateProduct_Failed_WhenProductCodeAlreadyExists(t *testing.T) {
 	ctx := context.TODO()
 	existProduct := products[0]
 	createParam := entity.CreateProductParam{
@@ -152,7 +152,7 @@ func Test_CreateProduct_Failed_When_Product_Code_Already_Exists(t *testing.T) {
 	assert.IsType(t, entity.ErrItemAlreadyExists{}, err)
 }
 
-func Test_CreateProduct_Failed_When_Creating_Product(t *testing.T) {
+func Test_CreateProduct_Failed_WhenCreatingProduct(t *testing.T) {
 	ctx := context.TODO()
 	createParam := entity.CreateProductParam{
 		Code:  "new-product",
@@ -197,7 +197,7 @@ func Test_CreateProduct_Success(t *testing.T) {
 	assert.ObjectsAreEqualValues(eProduct, aProduct)
 }
 
-func Test_UpdateProduct_Failed_When_Product_Code_Already_Exists(t *testing.T) {
+func Test_UpdateProduct_Failed_WhenProductCodeAlreadyExists(t *testing.T) {
 	ctx := context.TODO()
 	var productID int64 = 2
 	updateParam := entity.UpdateProductParam{
@@ -217,7 +217,7 @@ func Test_UpdateProduct_Failed_When_Product_Code_Already_Exists(t *testing.T) {
 	assert.IsType(t, entity.ErrItemAlreadyExists{}, err)
 }
 
-func Test_UpdateProduct_Failed_WhenUpdating_Product(t *testing.T) {
+func Test_UpdateProduct_Failed_WhenUpdatingProduct(t *testing.T) {
 	ctx := context.TODO()
 	var productID int64 = 1
 	updateParam := entity.UpdateProductParam{

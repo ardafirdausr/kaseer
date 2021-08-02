@@ -127,6 +127,7 @@ func Test_GetDailyOrderCount_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, eRes, aRes)
 }
+
 func Test_GetTotalOrderCount_Failed(t *testing.T) {
 	ctx := context.TODO()
 	mockUnitOfWork := new(mocks.UnitOfWork)
@@ -208,7 +209,7 @@ func Test_GetLastMonthIncome_Success(t *testing.T) {
 	assert.Equal(t, eRes, aRes)
 }
 
-func Test_Create_Failed_When_Cannot_Get_Products_by_ID(t *testing.T) {
+func Test_Create_Failed_WhenCannotGetProductsByID(t *testing.T) {
 	ctx := context.TODO()
 	var createOrderParam = entity.CreateOrderParam{
 		Total: 40000,
@@ -238,7 +239,7 @@ func Test_Create_Failed_When_Cannot_Get_Products_by_ID(t *testing.T) {
 	assert.Nil(t, aOrders)
 }
 
-func Test_Create_Failed_When_Quantity_Insufficient(t *testing.T) {
+func Test_Create_Failed_WhenQuantityInsufficient(t *testing.T) {
 	ctx := context.TODO()
 	var createOrderParam = entity.CreateOrderParam{
 		Total: 40000,
@@ -269,7 +270,7 @@ func Test_Create_Failed_When_Quantity_Insufficient(t *testing.T) {
 	assert.Nil(t, aOrders)
 }
 
-func Test_Create_Failed_When_Begin_Transaction(t *testing.T) {
+func Test_Create_Failed_WhenBeginTransaction(t *testing.T) {
 	ctx := context.TODO()
 	var createOrderParam = entity.CreateOrderParam{
 		Total: 40000,
@@ -300,7 +301,7 @@ func Test_Create_Failed_When_Begin_Transaction(t *testing.T) {
 	assert.Nil(t, aOrders)
 }
 
-func Test_Create_Failed_When_Creating_Order(t *testing.T) {
+func Test_Create_Failed_WhenCreatingOrder(t *testing.T) {
 	ctx := context.TODO()
 	var createOrderParam = entity.CreateOrderParam{
 		Total: 40000,
@@ -333,7 +334,7 @@ func Test_Create_Failed_When_Creating_Order(t *testing.T) {
 	assert.Nil(t, aOrders)
 }
 
-func Test_Create_Failed_When_Creating_Order_Items(t *testing.T) {
+func Test_Create_Failed_WhenCreatingOrderItems(t *testing.T) {
 	ctx := context.TODO()
 	var createOrderParam = entity.CreateOrderParam{
 		Total: 40000,
@@ -371,7 +372,7 @@ func Test_Create_Failed_When_Creating_Order_Items(t *testing.T) {
 	assert.Nil(t, aOrders)
 }
 
-func Test_Create_Failed_When_Decreasing_Product_Quantity(t *testing.T) {
+func Test_Create_Failed_WhenDecreasingProductQuantity(t *testing.T) {
 	ctx := context.TODO()
 	var createOrderParam = entity.CreateOrderParam{
 		Total: 40000,
@@ -411,7 +412,7 @@ func Test_Create_Failed_When_Decreasing_Product_Quantity(t *testing.T) {
 	assert.Nil(t, aOrders)
 }
 
-func Test_Create_Failed_When_Commiting_Transaction(t *testing.T) {
+func Test_Create_Failed_WhenCommitingTransaction(t *testing.T) {
 	ctx := context.TODO()
 	var createOrderParam = entity.CreateOrderParam{
 		Total: 40000,
