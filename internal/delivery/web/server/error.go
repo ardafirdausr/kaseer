@@ -27,7 +27,10 @@ func (che CustomHTTPErrorHandler) Handler(err error, c echo.Context) {
 	if ev, ok := err.(*entity.ErrValidation); ok {
 		he.Code = http.StatusBadRequest
 		he.Message = ev.Message
-	} else if ent, ok := err.(*entity.ErrNotFound); ok {
+	} else if eiae, ok := err.(entity.ErrItemAlreadyExists); ok {
+		he.Code = http.StatusBadRequest
+		he.Message = eiae.Message
+	} else if ent, ok := err.(entity.ErrNotFound); ok {
 		he.Code = http.StatusNotFound
 		he.Message = ent.Message
 	}
@@ -68,7 +71,7 @@ func (che CustomHTTPErrorHandler) Handler(err error, c echo.Context) {
 		if err != nil {
 			log.Println(he.Message)
 			log.Println(he.Error())
-			// che.logger.Error(err)
+			che.logger.Error(err)
 		}
 	}
 }

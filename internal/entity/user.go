@@ -4,12 +4,12 @@ import "time"
 
 type User struct {
 	ID        int64
-	Name      string    `db:"name" form:"name"`
-	Email     string    `db:"email" form:"email"`
-	PhotoUrl  *string   `db:"omitempty,photo_url"`
-	Password  string    `db:"password"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Name      string `form:"name"`
+	Email     string `form:"email"`
+	PhotoUrl  *string
+	Password  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type UserCredential struct {

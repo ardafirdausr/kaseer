@@ -15,6 +15,7 @@ type repositories struct {
 	UserRepository    internal.UserRepository
 	ProductRepository internal.ProductRepository
 	OrderRepository   internal.OrderRepository
+	UnitOfWork        internal.UnitOfWork
 }
 
 func newMySQLRepositories(DB *sql.DB) *repositories {
@@ -22,6 +23,7 @@ func newMySQLRepositories(DB *sql.DB) *repositories {
 		UserRepository:    mysql.NewUserRepository(DB),
 		ProductRepository: mysql.NewProductRepository(DB),
 		OrderRepository:   mysql.NewOrderRepository(DB),
+		UnitOfWork:        mysql.NewMySQLUnitOfWork(DB),
 	}
 }
 

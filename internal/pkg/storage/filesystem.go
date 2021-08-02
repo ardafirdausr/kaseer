@@ -9,7 +9,16 @@ import (
 	"strings"
 )
 
-type FileSystemStorage struct{}
+type FileSystemStorage struct {
+	storageDir string
+}
+
+func NewFileSystemStorage(storageDir string) *FileSystemStorage {
+	fss := new(FileSystemStorage)
+	fss.storageDir = storageDir
+
+	return fss
+}
 
 func (fss FileSystemStorage) Save(file *multipart.FileHeader, dir string, filename string) (string, error) {
 	src, err := file.Open()
@@ -23,7 +32,7 @@ func (fss FileSystemStorage) Save(file *multipart.FileHeader, dir string, filena
 	if err != nil {
 		return "", err
 	}
-	path := filepath.Join(root, "web", "storage", dir, filename)
+	path := filepath.Join(root, fss.storageDir, dir, filename)
 	if err := os.MkdirAll(filepath.Dir(path), 0770); err != nil {
 		log.Println(err)
 		return "", err

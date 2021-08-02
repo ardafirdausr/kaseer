@@ -7,7 +7,6 @@ import (
 	"github.com/ardafirdausr/kaseer/internal"
 	"github.com/ardafirdausr/kaseer/internal/app"
 	"github.com/ardafirdausr/kaseer/internal/entity"
-	"github.com/ardafirdausr/kaseer/internal/pkg/storage"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -39,7 +38,7 @@ func (uc UserController) ShowEditUserProfileForm(c echo.Context) error {
 
 func (uc UserController) UpdateUserProfile(c echo.Context) error {
 	sess, _ := session.Get("kaseer", c)
-
+	ctx := c.Request().Context()
 	user, ok := c.Get("user").(*entity.User)
 	if !ok {
 		return echo.ErrInternalServerError
@@ -63,8 +62,7 @@ func (uc UserController) UpdateUserProfile(c echo.Context) error {
 
 	photo, _ := c.FormFile("photo")
 	if photo != nil {
-		strg := storage.FileSystemStorage{}
-		photoUrl, err := uc.userUsecase.SaveUserPhoto(strg, user, photo)
+		photoUrl, err := uc.userUsecase.SaveUserPhoto(ctx, user, photo)
 		if err != nil {
 			sess.AddFlash("Failed upload photo", "error_message")
 			return c.Redirect(http.StatusSeeOther, "/profile/edit")
@@ -86,7 +84,7 @@ func (uc UserController) UpdateUserProfile(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	isUpdated, err := uc.userUsecase.UpdateUser(user.ID, param)
+	isUpdated, err := uc.userUsecase.UpdateUser(ctx, user.ID, param)
 	if err != nil {
 		return err
 	}
@@ -136,7 +134,8 @@ func (uc UserController) UpdateUserPassword(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/profile/edit/password")
 	}
 
-	isUpdated, err := uc.userUsecase.UpdateUserPassword(user.ID, updatePasswordParam.Password)
+	ctx := c.Request().Context()
+	isUpdated, err := uc.userUsecase.UpdateUserPassword(ctx, user.ID, updatePasswordParam.Password)
 	if err != nil {
 		return err
 	}
@@ -171,7 +170,8 @@ func (uc UserController) Login(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	user, err := uc.userUsecase.GetUserByCredential(credential)
+	ctx := c.Request().Context()
+	user, err := uc.userUsecase.GetUserByCredential(ctx, credential)
 	_, isent := err.(entity.ErrNotFound)
 	_, iseic := err.(entity.ErrInvalidCredential)
 	if isent || iseic {
