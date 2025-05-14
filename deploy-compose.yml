@@ -1,0 +1,29 @@
+version: '3.3'
+services:
+  kaseer:
+    image: ardafirdausr/kaseer:latest
+    container_name: kaseer
+    restart: unless-stopped
+    environment:
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - DEBUG=${DEBUG}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASS=${MYSQL_PASS}
+      - SESSION_KEY=${SESSION_KEY}
+      - SENTRY_DSN=${SENTRY_DSN}
+    ports:
+      - '8000:${HOST}'
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 200M
+        reservations:
+          cpus: '0.25'
+          memory: 50M

@@ -3,7 +3,6 @@ package app
 import (
 	"database/sql"
 	"log"
-	"os"
 
 	"github.com/ardafirdausr/kaseer/internal/driver"
 )
@@ -13,8 +12,7 @@ type drivers struct {
 }
 
 func newDrivers() (*drivers, error) {
-	MySQLURI := os.Getenv("MYSQL_URI")
-	MySQLConn, err := driver.ConnectToMySQLDB(MySQLURI)
+	MySQLConn, err := driver.ConnectToMySQLDB()
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err

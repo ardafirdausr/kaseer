@@ -2,9 +2,6 @@ package app
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
-	"strings"
 
 	"github.com/ardafirdausr/kaseer/internal"
 	"github.com/ardafirdausr/kaseer/internal/repository/mysql"
@@ -25,25 +22,4 @@ func newMySQLRepositories(DB *sql.DB) *repositories {
 		OrderRepository:   mysql.NewOrderRepository(DB),
 		UnitOfWork:        mysql.NewMySQLUnitOfWork(DB),
 	}
-}
-
-func connectToMySQL(DBURI string) (*sql.DB, error) {
-	queries := []string{"parseTime=true"}
-	queryString := strings.Join(queries, "&")
-
-	DBURIx := strings.TrimRight(DBURI, "/")
-	MySQLURI := fmt.Sprintf("%s?%s", DBURIx, queryString)
-	DB, err := sql.Open("mysql", MySQLURI)
-	if err != nil {
-		log.Fatal(err.Error())
-		return nil, err
-	}
-
-	err = DB.Ping()
-	if err != nil {
-		log.Fatal(err.Error())
-		return nil, err
-	}
-
-	return DB, nil
 }

@@ -1,12 +1,23 @@
-FROM golang:1.15
+### BUILD STAGE ###
+FROM golang:1.20.14-alpine3.18 AS builder
 
-LABEL version="1.0.0"
+LABEL maintainer="Arda <ardafirdausr@gmail.com>"
 
-WORKDIR /go/src/github.com/ardafirdausr/kaseer
+WORKDIR /app
+
 COPY . .
-
-RUN go get -d -v ./...
 RUN go install -v ./...
-RUN go build -o /go/bin/kaseer cmd/kaseer/*.go
+RUN go build -o /app cmd/kaseer/*.go
 
-ENTRYPOINT ["/go/bin/kaseer"]
+### RUN STAGE ###
+FROM alpine:3.18
+
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Jakarta
+
+WORKDIR /app
+
+COPY --from=builder /app/main .
+COPY --from=builder /app/web ./web
+
+CMD ["./main"]
