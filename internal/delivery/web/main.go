@@ -63,6 +63,11 @@ func Start(app *app.App) {
 	dashboardController := controller.NewDashboardController(app.Usecases)
 	authenticatedGroup.GET("/dashboard", dashboardController.ShowDashboard)
 
+	// Health Check Route
+	web.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"message": "OK"})
+	})
+
 	// Redirect Route
 	web.GET("/", func(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/dashboard")

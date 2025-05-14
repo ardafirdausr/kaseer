@@ -1,0 +1,39 @@
+version: '3.3'
+services:
+  kaseer:
+    networks:
+      - database
+    # image: ardafirdausr/kaseer:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kaseer
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8099
+      - DEBUG=FALSE
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASS=Rahasia123
+      - MYSQL_DATABASE=kaseer
+      - SESSION_KEY=Rahasia123
+      - SENTRY_DSN=https://d63a447bc62144979678e61aa12b5aa7@o811972.ingest.us.sentry.io/5808172
+    ports:
+      - '8099:8099'
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 200M
+        reservations:
+          cpus: '0.25'
+          memory: 50M
+networks:
+  database:
+    external: true

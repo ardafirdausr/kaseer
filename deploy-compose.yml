@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  kaseer:
+    image: ardafirdausr/kaseer:latest
+    container_name: kaseer
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - DEBUG=${DEBUG}
+      - MYSQL_URI=${MYSQL_URI}
+      - SESSION_KEY=${SESSION_KEY}
+      - SENTRY_DSN=${SENTRY_DSN}
+    ports:
+      - "8080:8080"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 200M
+        reservations:
+          cpus: '0.25'
+          memory: 50M
